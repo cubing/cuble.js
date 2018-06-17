@@ -46,7 +46,6 @@ function save() {
 function removeNewlines(moves) {
   var out = [];
   for (var move of moves) {
-    console.log(move.type);
     if (move.type !== "newline") {
       out.push(move);
     }
@@ -141,7 +140,7 @@ cube.addEventListener(function(d) {
   twistyScene.play.start();
 
   timeStampedMoves.push({
-    move: d.latestMove,
+    moves: d.latestMove,
     timeStamp: d.timeStamp,
     stateStr: d.stateStr
   });
@@ -156,3 +155,25 @@ cube.addEventListener(function(d) {
   // console.log(alg.cube.toString(moves));
   displayMoves();
 });
+
+function latestSaved() {
+  var out = [];
+  for (var key in localStorage) {
+    if (key[4] === "-" && key[7] === "-") {
+      out.push(JSON.parse(localStorage[key]));
+    }
+  }
+  return out.reverse();
+}
+
+function setRecon(recon) {
+  console.log("Setting reconstruction:", recon)
+  moves = recon.moves;
+  timeStampedMoves = recon.timeStampedMoves;
+  document.getElementById("cuber").value = (recon.cuber ? recon.cuber : "N/A") + " (from archive)";
+  displayMoves();
+}
+
+function unarchive(idx) {
+  setRecon(latestSaved()[idx]);
+}
