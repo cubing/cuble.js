@@ -64,7 +64,9 @@ GiikerCube.prototype = {
     str += "\n"
     str += giikerState.slice(16, 28).join(".");
     str += "\n"
-    str += giikerState.slice(28, 40).join(".");
+    str += giikerState.slice(28, 32).join(".");
+    str += "\n"
+    str += giikerState.slice(32, 40).join(".");
     console.log(str);
 
     for (var l of this.listeners) {

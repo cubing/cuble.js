@@ -32,24 +32,24 @@ function cuber() {
 function save() {
   console.log("Saving...");
   document.getElementById("save").textContent = "Saving...";
-  console.log("Saving..fsdfdsf.");
   localStorage[(new Date()).toISOString()] = JSON.stringify({
     moves: moves,
+    timeStampedMoves: timeStampedMoves,
     cuber: cuber()
   });
-  console.log("Saving..fsdfdsf.");
   document.getElementById("save").textContent = "Saved!";
   setTimeout(function() {
     document.getElementById("save").textContent = "Save";
   }, 1000);
 }
 
-function splitScrambles(moves) {
+function splitScramble(moves) {
   for (var i = 0; i < moves.length; i++) {
-    if (moves[i].comment === "// Scramble") {
+    console.log(moves[i].comment);
+    if (moves[i].comment === "// scramble" && moves[i+1] && moves[i+1].type == "newline") {
       return {
-        scramble: moves.slice(0, i-1),
-        solve: moves.slice(i+1)
+        scramble: alg.cube.simplify(moves.slice(0, i)),
+        solve: moves.slice(i+2)
       }
     }
   }
@@ -80,8 +80,8 @@ window.addEventListener("load", function() {
     var recon = splitScramble(moves);
 
     url = "https://alg.cubing.net?" +
-      "setup=" + encodeURIComponent(escape_alg(recon.scramble)) +
-      "alg=" + encodeURIComponent(escape_alg(recon.moves)) +
+      "setup=" + encodeURIComponent(escape_alg(alg.cube.toString(recon.scramble))) +
+      "&alg=" + encodeURIComponent(escape_alg(alg.cube.toString(recon.solve))) +
       "&title=Giiker%20Cube%20Reconstruction" + (cuber() ? "%0A" + encodeURIComponent(cuber()) : "") + "%0A" + encodeURIComponent(new Date().toISOString().substring(0, 10));
     window.open(url, '_blank');
     save();
@@ -119,7 +119,7 @@ cube.addEventListener(function(d) {
 
   timeStampedMoves.push({
     move: d.latestMove,
-    timeStamp: d.time,
+    timeStamp: d.timeStamp,
     stateStr: d.stateStr
   });
 

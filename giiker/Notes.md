@@ -58,4 +58,8 @@ https://alg.cubing.net/?alg=R%0AD2_F2_D2_F2_L_F2-_L_R2_U2-_L-_R_U-_R2_U_F-_U-%0A
 - big cube sim controlled using small
   - block selector?
   - foot pedal for 5x5x5
-- count mistakes in a solve
+- Measure pauses and count mistakes in a solve
+- Don't reset mod 4? e.g.
+  - R' R' R' R' == R4'
+  - R R R' R R R R R R' == R5
+  - U R R' U == U2
