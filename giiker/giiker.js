@@ -51,15 +51,15 @@ GiikerCube.prototype = {
       giikerState.push(Math.floor(val.getUint8(i) / 16));
       giikerState.push(val.getUint8(i) % 16);
     }
-    var str = "";
-    str += giikerState.slice(0, 8).join(".");
-    str += "\n"
-    str += giikerState.slice(8, 16).join(".");
-    str += "\n"
-    str += giikerState.slice(16, 28).join(".");
-    str += "\n"
-    str += giikerState.slice(28, 40).join(".");
-    console.log(str);
+    // var str = "";
+    // str += giikerState.slice(0, 8).join(".");
+    // str += "\n"
+    // str += giikerState.slice(8, 16).join(".");
+    // str += "\n"
+    // str += giikerState.slice(16, 28).join(".");
+    // str += "\n"
+    // str += giikerState.slice(28, 40).join(".");
+    // console.log(str);
 
     for (var l of this.listeners) {
       l({
