@@ -1,7 +1,10 @@
 var moves = [];
+var scrMoves = [];
+var timeStampedMoves = [];
 var lastMoveTimestamp = 0;
 
 var SPLIT_LINES_MS = 500;
+var firstMoveReceived = false;
 
 // From alg.cubing.net. Not future-proof.
 function escape_alg(alg) {
@@ -13,6 +16,49 @@ function escape_alg(alg) {
   return escaped;
 }
 
+function displayMoves() {
+  document.getElementById("moves").textContent = alg.cube.toString(moves);
+}
+
+function reset() {
+  moves = [];
+  displayMoves();
+}
+
+function cuber() {
+  return document.getElementById("cuber").value;
+}
+
+function save() {
+  console.log("Saving...");
+  document.getElementById("save").textContent = "Saving...";
+  console.log("Saving..fsdfdsf.");
+  localStorage[(new Date()).toISOString()] = JSON.stringify({
+    moves: moves,
+    cuber: cuber()
+  });
+  console.log("Saving..fsdfdsf.");
+  document.getElementById("save").textContent = "Saved!";
+  setTimeout(function() {
+    document.getElementById("save").textContent = "Save";
+  }, 1000);
+}
+
+function splitScrambles(moves) {
+  for (var i = 0; i < moves.length; i++) {
+    if (moves[i].comment === "// Scramble") {
+      return {
+        scramble: moves.slice(0, i-1),
+        solve: moves.slice(i+1)
+      }
+    }
+  }
+  return {
+    scramble: [],
+    solve: moves
+  }
+}
+
 var cube = new GiikerCube();
 window.addEventListener("load", function() {
   // document.querySelector("#connect").addEventListener("click", function() {
@@ -21,20 +67,61 @@ window.addEventListener("load", function() {
 
   document.getElementById("connect").addEventListener("click", function f() {
     console.log("Connecting...");
-    cube.connect();
+    document.getElementById("connect").textContent = "Connecting...";
+    document.getElementById("twistyContainer").classList.add("loading");
+    cube.connect().then(function() {
+      document.getElementById("connect").textContent = "Connected!";
+      document.getElementById("twistyContainer").classList.remove("loading");
+    });
   });
 
   document.getElementById("view").addEventListener("click", function f() {
     console.log("Connecting...");
-    location.href = "https://alg.cubing.net?alg=" + encodeURIComponent(escape_alg(alg.cube.toString(moves))) + "&title=Giiker%20Cube%20Reconstruction%0A" + encodeURIComponent(new Date().toISOString().substring(0, 10));
+    var recon = splitScramble(moves);
+
+    url = "https://alg.cubing.net?" +
+      "setup=" + encodeURIComponent(escape_alg(recon.scramble)) +
+      "alg=" + encodeURIComponent(escape_alg(recon.moves)) +
+      "&title=Giiker%20Cube%20Reconstruction" + (cuber() ? "%0A" + encodeURIComponent(cuber()) : "") + "%0A" + encodeURIComponent(new Date().toISOString().substring(0, 10));
+    window.open(url, '_blank');
+    save();
+  });
+
+  document.getElementById("reset").addEventListener("click", function f() {
+    console.log("Resetting moves...");
+    save();
+    reset();
+  });
+
+  document.getElementById("mark-scramble").addEventListener("click", function f() {
+    moves.push({
+      type: "comment_short",
+      comment: "// scramble"
+    });
+    displayMoves();
+  });
+
+  document.getElementById("save").addEventListener("click", function() {
+    save();
   });
 });
 
 
 cube.addEventListener(function(d) {
+  if (!firstMoveReceived) {
+    firstMoveReceived = true;
+    return true;
+  }
+
   console.log(d);
   twistyScene.queueMoves([d.latestMove]);
   twistyScene.play.start();
+
+  timeStampedMoves.push({
+    move: d.latestMove,
+    timeStamp: d.time,
+    stateStr: d.stateStr
+  });
 
   var now = Date.now();
   if (now - lastMoveTimestamp > SPLIT_LINES_MS && moves.length > 0 && moves[moves.length - 1].type != "newline") {
@@ -44,5 +131,5 @@ cube.addEventListener(function(d) {
   moves.push(d.latestMove)
   moves = alg.cube.simplify(moves);
   // console.log(alg.cube.toString(moves));
-  document.getElementById("moves").textContent = alg.cube.toString(moves);
+  displayMoves();
 });

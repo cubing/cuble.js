@@ -36,17 +36,43 @@
       <div class="padded center">
         <button id="connect">Connect</button>
         <button id="view">View</button>
-        <textarea id="moves" rows=8>
+        <button id="save">Save</button>
+        <br>
+        <button id="mark-scramble">Mark end of scramble</button>
+        <button id="reset">Save and Reset</button>
+        <br><br>
+        <input id="cuber" placeholder="Cuber">
+        <br>
+        <textarea class="alg" id="moves" rows=8>
         </textarea>
       </div>
       <style>
-        #moves {
+        .alg {
           width: 90%;
           margin: 5%;
           background: none;
           border: none;
           font-family: Verdana, Helvetica, Tahoma, sans-serif;
           font-size: 1.5em;
+        }
+        #twistyContainer.loading {
+          animation-duration: 1s;
+          animation-name: loading;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear
+          /*animation-direction: */
+        }
+        @keyframes loading {
+          from {
+            background-position: 0 0, 0px 0px;
+          }
+
+          to {
+            background-position: 32 32, 0px 0px;
+          }
+        }
+        #twistyContainer.loading div {
+          opacity: 0.3;
         }
       </style>
 

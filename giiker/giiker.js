@@ -30,12 +30,17 @@ GiikerCube.prototype = {
     console.log("Service:", this.cubeService);
     this.cubeCharacteristic = await this.cubeService.getCharacteristic(this.UUIDs.cubeCharacteristic);
     console.log(this.cubeCharacteristic);
-    await this.cubeCharacteristic.startNotifications()
+    await this.cubeCharacteristic.startNotifications();
     this.cubeCharacteristic.addEventListener("characteristicvaluechanged",
       this.onCubeCharacteristicChanged.bind(this));
   },
 
   giikerMoveToAlgMove(face, amount) {
+    if (amount == 9) {
+      console.err("Encountered 9", face, amount);
+      amount = 2;
+    }
+
     return {
       type: "move",
       base: ["?", "B", "D", "L", "U", "R", "F"][face],
@@ -46,24 +51,27 @@ GiikerCube.prototype = {
   onCubeCharacteristicChanged(event) {
     var val = event.target.value;
     // console.log(event.target);
+    console.log(event);
     var giikerState = [];
     for (var i = 0; i < 20; i++) {
       giikerState.push(Math.floor(val.getUint8(i) / 16));
       giikerState.push(val.getUint8(i) % 16);
     }
-    // var str = "";
-    // str += giikerState.slice(0, 8).join(".");
-    // str += "\n"
-    // str += giikerState.slice(8, 16).join(".");
-    // str += "\n"
-    // str += giikerState.slice(16, 28).join(".");
-    // str += "\n"
-    // str += giikerState.slice(28, 40).join(".");
-    // console.log(str);
+    var str = "";
+    str += giikerState.slice(0, 8).join(".");
+    str += "\n"
+    str += giikerState.slice(8, 16).join(".");
+    str += "\n"
+    str += giikerState.slice(16, 28).join(".");
+    str += "\n"
+    str += giikerState.slice(28, 40).join(".");
+    console.log(str);
 
     for (var l of this.listeners) {
       l({
-        latestMove: this.giikerMoveToAlgMove(giikerState[32], giikerState[33])
+        latestMove: this.giikerMoveToAlgMove(giikerState[32], giikerState[33]),
+        timeStamp: event.timeStamp,
+        stateStr: str
       });
     }
   },
