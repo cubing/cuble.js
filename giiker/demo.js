@@ -43,9 +43,19 @@ function save() {
   }, 1000);
 }
 
+function removeNewlines(moves) {
+  var out = [];
+  for (var move of moves) {
+    console.log(move.type);
+    if (move.type !== "newline") {
+      out.push(move);
+    }
+  }
+  return out;
+}
+
 function splitScramble(moves) {
   for (var i = 0; i < moves.length; i++) {
-    console.log(moves[i].comment);
     if (moves[i].comment === "// scramble" && moves[i+1] && moves[i+1].type == "newline") {
       return {
         scramble: alg.cube.simplify(moves.slice(0, i)),
@@ -87,6 +97,18 @@ window.addEventListener("load", function() {
     save();
   });
 
+  document.getElementById("analyze").addEventListener("click", function f() {
+    console.log("Opening analysis link...");
+    var recon = splitScramble(moves);
+
+    var url = "https://jonatanklosko.github.io/reconstructions/#/show?"+
+      "scramble=" + encodeURIComponent(alg.cube.toString(recon.scramble)) +
+      "&solution=" + encodeURIComponent(alg.cube.toString(recon.solve));
+
+    window.open(url, '_blank');
+    save();
+  });
+
   document.getElementById("reset").addEventListener("click", function f() {
     console.log("Resetting moves...");
     save();
@@ -98,6 +120,7 @@ window.addEventListener("load", function() {
       type: "comment_short",
       comment: "// scramble"
     });
+    moves = alg.cube.simplify(removeNewlines(moves));
     displayMoves();
   });
 
