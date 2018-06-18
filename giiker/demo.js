@@ -32,11 +32,11 @@ function cuber() {
 function save() {
   console.log("Saving...");
   document.getElementById("save").textContent = "Saving...";
-  localStorage[(new Date()).toISOString()] = JSON.stringify({
+  ldb.set((new Date()).toISOString(), JSON.stringify({
     moves: moves,
     timeStampedMoves: timeStampedMoves,
     cuber: cuber()
-  });
+  }));
   document.getElementById("save").textContent = "Saved!";
   setTimeout(function() {
     document.getElementById("save").textContent = "Save";
