@@ -1,84 +1,179 @@
+var moves = [];
+var scrMoves = [];
+var timeStampedMoves = [];
+var lastMoveTimestamp = 0;
 
-var GiikerCube = function() {
-  this.listeners = [];
+var SPLIT_LINES_MS = 500;
+var firstMoveReceived = false;
+
+// From alg.cubing.net. Not future-proof.
+function escape_alg(alg) {
+  if (!alg) {return alg;}
+  var escaped = alg;
+  escaped = escaped.replace(/_/g, "&#95;").replace(/ /g, "_");
+  escaped = escaped.replace(/\+/g, "&#2b;");
+  escaped = escaped.replace(/-/g, "&#45;").replace(/'/g, "-");
+  return escaped;
 }
 
-GiikerCube.prototype = {
-  UUIDs: {
-    cubeService: "0000aadb-0000-1000-8000-00805f9b34fb",
-    cubeCharacteristic: "0000aadc-0000-1000-8000-00805f9b34fb"
-  },
+function displayMoves() {
+  document.getElementById("moves").textContent = alg.cube.toString(moves);
+}
 
-  connect: async function() {
-    console.log("Attempting to pair.")
-    this.device = await navigator.bluetooth.requestDevice({
-      filters: [{
-        namePrefix: "GiC"
-      }],
-      optionalServices: [
-        "00001530-1212-efde-1523-785feabcd123",
-        "0000aaaa-0000-1000-8000-00805f9b34fb",
-        "0000aadb-0000-1000-8000-00805f9b34fb",
-        "0000180f-0000-1000-8000-00805f9b34fb",
-        "0000180a-0000-1000-8000-00805f9b34fb"
-      ]
-    });
-    console.log("Device:", this.device);
-    this.server = await this.device.gatt.connect();
-    console.log("Server:", this.server);
-    this.cubeService = await this.server.getPrimaryService(this.UUIDs.cubeService);
-    console.log("Service:", this.cubeService);
-    this.cubeCharacteristic = await this.cubeService.getCharacteristic(this.UUIDs.cubeCharacteristic);
-    console.log(this.cubeCharacteristic);
-    await this.cubeCharacteristic.startNotifications()
-    this.cubeCharacteristic.addEventListener("characteristicvaluechanged",
-      this.onCubeCharacteristicChanged.bind(this));
-  },
+function reset() {
+  moves = [];
+  displayMoves();
+}
 
-  giikerMoveToAlgMove(face, amount) {
-    return {
-      type: "move",
-      base: ["?", "B", "D", "L", "U", "R", "F"][face],
-      amount: [0, 1, 2, -1][amount]
+function cuber() {
+  return document.getElementById("cuber").value;
+}
+
+function save() {
+  console.log("Saving...");
+  document.getElementById("save").textContent = "Saving...";
+  ldb.set((new Date()).toISOString(), JSON.stringify({
+    moves: moves,
+    timeStampedMoves: timeStampedMoves,
+    cuber: cuber()
+  }));
+  document.getElementById("save").textContent = "Saved!";
+  setTimeout(function() {
+    document.getElementById("save").textContent = "Save";
+  }, 1000);
+}
+
+function removeNewlines(moves) {
+  var out = [];
+  for (var move of moves) {
+    if (move.type !== "newline") {
+      out.push(move);
     }
-  },
+  }
+  return out;
+}
 
-  onCubeCharacteristicChanged(event) {
-    var val = event.target.value;
-    // console.log(event.target);
-    var giikerState = [];
-    for (var i = 0; i < 20; i++) {
-      giikerState.push(Math.floor(val.getUint8(i) / 16));
-      giikerState.push(val.getUint8(i) % 16);
+function splitScramble(moves) {
+  for (var i = 0; i < moves.length; i++) {
+    if (moves[i].comment === "// scramble" && moves[i+1] && moves[i+1].type == "newline") {
+      return {
+        scramble: alg.cube.simplify(moves.slice(0, i)),
+        solve: moves.slice(i+2)
+      }
     }
-    var str = "";
-    str += giikerState.slice(0, 8).join(".");
-    str += "\n"
-    str += giikerState.slice(8, 16).join(".");
-    str += "\n"
-    str += giikerState.slice(16, 28).join(".");
-    str += "\n"
-    str += giikerState.slice(28, 40).join(".");
-    console.log(str);
-
-    for (var l of this.listeners) {
-      l({
-        latestMove: this.giikerMoveToAlgMove(giikerState[32], giikerState[33])
-      });
-    }
-  },
-
-  addEventListener(listener) {
-    this.listeners.push(listener);
+  }
+  return {
+    scramble: [],
+    solve: moves
   }
 }
 
-// Object.setPrototypeOf(GiikerCube, EventTarget)
-
-
 var cube = new GiikerCube();
 window.addEventListener("load", function() {
-  document.querySelector("#connect").addEventListener("click", function() {
-    cube.connect();
+  // document.querySelector("#connect").addEventListener("click", function() {
+  //   cube.connect();
+  // });
+
+  document.getElementById("connect").addEventListener("click", function f() {
+    console.log("Connecting...");
+    document.getElementById("connect").textContent = "Connecting...";
+    document.getElementById("twistyContainer").classList.add("loading");
+    cube.connect().then(function() {
+      document.getElementById("connect").textContent = "Connected!";
+      document.getElementById("twistyContainer").classList.remove("loading");
+    });
+  });
+
+  document.getElementById("view").addEventListener("click", function f() {
+    console.log("Connecting...");
+    var recon = splitScramble(moves);
+
+    url = "https://alg.cubing.net?" +
+      "setup=" + encodeURIComponent(escape_alg(alg.cube.toString(recon.scramble))) +
+      "&alg=" + encodeURIComponent(escape_alg(alg.cube.toString(recon.solve))) +
+      "&title=Giiker%20Cube%20Reconstruction" + (cuber() ? "%0A" + encodeURIComponent(cuber()) : "") + "%0A" + encodeURIComponent(new Date().toISOString().substring(0, 10));
+    window.open(url, '_blank');
+    save();
+  });
+
+  document.getElementById("analyze").addEventListener("click", function f() {
+    console.log("Opening analysis link...");
+    var recon = splitScramble(moves);
+
+    var url = "https://jonatanklosko.github.io/reconstructions/#/show?"+
+      "scramble=" + encodeURIComponent(alg.cube.toString(recon.scramble)) +
+      "&solution=" + encodeURIComponent(alg.cube.toString(recon.solve));
+
+    window.open(url, '_blank');
+    save();
+  });
+
+  document.getElementById("reset").addEventListener("click", function f() {
+    console.log("Resetting moves...");
+    save();
+    reset();
+  });
+
+  document.getElementById("mark-scramble").addEventListener("click", function f() {
+    moves.push({
+      type: "comment_short",
+      comment: "// scramble"
+    });
+    moves = alg.cube.simplify(removeNewlines(moves));
+    displayMoves();
+  });
+
+  document.getElementById("save").addEventListener("click", function() {
+    save();
   });
 });
+
+
+cube.addEventListener(function(d) {
+  if (!firstMoveReceived) {
+    firstMoveReceived = true;
+    return true;
+  }
+
+  console.log(d);
+  twistyScene.queueMoves([d.latestMove]);
+  twistyScene.play.start();
+
+  timeStampedMoves.push({
+    moves: d.latestMove,
+    timeStamp: d.timeStamp,
+    stateStr: d.stateStr
+  });
+
+  var now = Date.now();
+  if (now - lastMoveTimestamp > SPLIT_LINES_MS && moves.length > 0 && moves[moves.length - 1].type != "newline") {
+    moves.push({type: "newline"});
+  }
+  lastMoveTimestamp = now;
+  moves.push(d.latestMove)
+  moves = alg.cube.simplify(moves);
+  // console.log(alg.cube.toString(moves));
+  displayMoves();
+});
+
+function latestSaved() {
+  var out = [];
+  for (var key in localStorage) {
+    if (key[4] === "-" && key[7] === "-") {
+      out.push(JSON.parse(localStorage[key]));
+    }
+  }
+  return out.reverse();
+}
+
+function setRecon(recon) {
+  console.log("Setting reconstruction:", recon)
+  moves = recon.moves;
+  timeStampedMoves = recon.timeStampedMoves;
+  document.getElementById("cuber").value = (recon.cuber ? recon.cuber : "N/A") + " (from archive)";
+  displayMoves();
+}
+
+function unarchive(idx) {
+  setRecon(latestSaved()[idx]);
+}
