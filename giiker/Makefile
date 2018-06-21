@@ -7,5 +7,5 @@ deploy:
 		--exclude .gitignore \
 		--exclude .gitmodules \
 		./ \
-		cubing.net:~/wireless.cubing.net/
-	echo "\nDone deploying. Go to https://wireless.cubing.net/\n"
+		cubing.net:~/bluetooth.cubing.net/
+	echo "\nDone deploying. Go to https://bluetooth.cubing.net/\n"
