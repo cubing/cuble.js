@@ -63,3 +63,5 @@ https://alg.cubing.net/?alg=R%0AD2_F2_D2_F2_L_F2-_L_R2_U2-_L-_R_U-_R2_U_F-_U-%0A
   - R' R' R' R' == R4'
   - R R R' R R R R R R' == R5
   - U R R' U == U2
+
+- Synchronize button
