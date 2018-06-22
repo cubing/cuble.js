@@ -3,6 +3,8 @@ var GiikerCube = function() {
   this.listeners = [];
 }
 
+var debug = console.info ? console.log.bind(console) : console.info.bind(console);
+
 GiikerCube.prototype = {
   UUIDs: {
     cubeService: "0000aadb-0000-1000-8000-00805f9b34fb",
@@ -31,6 +33,9 @@ GiikerCube.prototype = {
     this.cubeCharacteristic = await this.cubeService.getCharacteristic(this.UUIDs.cubeCharacteristic);
     console.log(this.cubeCharacteristic);
     await this.cubeCharacteristic.startNotifications();
+    // TODO: Can we safely save the async promise instead of waiting for the response?
+    this._originalValue = await this.cubeCharacteristic.readValue();
+    debug("Original value:", this._originalValue);
     this.cubeCharacteristic.addEventListener("characteristicvaluechanged",
       this.onCubeCharacteristicChanged.bind(this));
   },
@@ -50,6 +55,25 @@ GiikerCube.prototype = {
 
   onCubeCharacteristicChanged(event) {
     var val = event.target.value;
+
+    if (this._originalValue) {
+      debug("Comparing against original value.")
+      var same = true;
+      for (var i = 0; i < 20; i++) {
+         if (this._originalValue.getUint8(i) != val.getUint8(i)) {
+          debug("Different at index ", i);
+          same = false;
+          break;
+         }
+      }
+      this._originalValue = null;
+      if (same) {
+        debug("Skipping extra first event.")
+        return;
+      }
+    }
+
+    console.log(val);
     // console.log(event.target);
     console.log(event);
     var giikerState = [];
