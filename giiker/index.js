@@ -4,7 +4,6 @@ var timeStampedMoves = [];
 var lastMoveTimestamp = 0;
 
 var SPLIT_LINES_MS = 500;
-var firstMoveReceived = false;
 
 // From alg.cubing.net. Not future-proof.
 function escape_alg(alg) {
@@ -130,10 +129,6 @@ window.addEventListener("load", function() {
 
 
 cube.addEventListener(function(d) {
-  if (!firstMoveReceived) {
-    firstMoveReceived = true;
-    return true;
-  }
 
   console.log(d);
   twistyScene.queueMoves([d.latestMove]);
