@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/web-bluetooth": "^0.0.4",
+    "alg": "*"
+  }
+}
