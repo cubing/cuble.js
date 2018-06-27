@@ -1,4 +1,10 @@
 {
+  "name": "cuble",
+  "version": "0.0.1",
+  "description": "Library to connect to bluetooth-enabled puzzles.",
+  "author": "Lucas Garron <code@garron.net> (https://garron.net/)",
+  "license": "MIT",
+  "main": "./build/giiker.js",
   "dependencies": {
     "@types/web-bluetooth": "^0.0.4",
     "alg": "*"
