@@ -4,9 +4,21 @@
   "description": "Library to connect to bluetooth-enabled puzzles.",
   "author": "Lucas Garron <code@garron.net> (https://garron.net/)",
   "license": "MIT",
-  "main": "./build/giiker.js",
+  "main": "./dist/cuble.js",
+  "types": "./dist/index.d.ts",
   "dependencies": {
-    "@types/web-bluetooth": "^0.0.4",
     "alg": "*"
+  },
+  "devDependencies": {
+    "@types/web-bluetooth": "^0.0.4",
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.3",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "ts-loader": "^4.4.2",
+    "ts-node": "^7.0.0",
+    "typescript": "^2.9.2",
+    "webpack": "^4.12.2",
+    "webpack-cli": "^3.0.8"
   }
 }

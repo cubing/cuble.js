@@ -37,7 +37,7 @@ export class GiikerCube {
     });
     debug("Device:", this.device);
     this.server = await this.device.gatt.connect();
-    debug("Server:", this.server);
+    var x = debug("Server:", this.server);
     this.cubeService = await this.server.getPrimaryService(UUIDs.cubeService);
     debug("Service:", this.cubeService);
     this.cubeCharacteristic = await this.cubeService.getCharacteristic(UUIDs.cubeCharacteristic);
@@ -71,11 +71,11 @@ export class GiikerCube {
       debug("Comparing against original value.")
       var same = true;
       for (var i = 0; i < 20; i++) {
-         if (this._originalValue.getUint8(i) != val.getUint8(i)) {
+        if (this._originalValue.getUint8(i) != val.getUint8(i)) {
           debug("Different at index ", i);
           same = false;
           break;
-         }
+        }
       }
       this._originalValue = null;
       if (same) {
