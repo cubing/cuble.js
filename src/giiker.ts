@@ -1,4 +1,5 @@
 import {BlockMove} from "alg"
+import {BluetoothCube} from "./bluetooth-cube"
 
 var debug = console.info ? console.log.bind(console) : console.info.bind(console);
 
@@ -13,11 +14,7 @@ class GiiKerEvent {
   stateStr: string;
 }
 
-export abstract class BluetoothCube {
-  abstract async connect(): Promise<void>;
-}
-
-export class GiiKerCube {
+export class GiiKerCube extends BluetoothCube {
   private listeners: any[] = []; // TODO: type
   private _originalValue: any; // TODO: type
   private cubeCharacteristic: any; // TODO: type

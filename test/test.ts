@@ -1,32 +1,19 @@
-import {Inverter} from "../src/inverter"
-import {SwappableInverter} from "../src/swappable-inverter"
+import {BlockMove, structureEquals} from "alg"
+import {GiiKerCube} from "../src/giiker"
 
 import { expect } from "chai";
 
-describe("Inverter", () => {
-  it("should invert", () => {
-    var inverter = new Inverter("R U'");
-    inverter.invert();
-    expect(inverter.getAlg()).to.equal("U R'");
-    expect(inverter.inversionCount).to.equal(1);
-    inverter.invert();
-    expect(inverter.getAlg()).to.equal("R U'");
-    expect(inverter.inversionCount).to.equal(2);
+describe("GiiKerCube", () => {
+  it("should be possible to construct", () => {
+    new GiiKerCube();
+  });
+
+  it("should calculate giikerMoveToAlgMove() correctly", () => {
+    var cube = new GiiKerCube();
+    expect(structureEquals(cube.giikerMoveToAlgMove(1, 1), new BlockMove("B", 1))).to.be.true;
+    expect(structureEquals(cube.giikerMoveToAlgMove(2, 3), new BlockMove("D", -1))).to.be.true;
+    expect(structureEquals(cube.giikerMoveToAlgMove(3, 9), new BlockMove("L", 2))).to.be.true;
   });
 });
 
-describe("SwappableInverter", () => {
-  it("should allow swapping without resetting count", () => {
-    var inverter = new SwappableInverter("R U'");
-    inverter.invert();
-    expect(inverter.getAlg()).to.equal("U R'");
-    expect(inverter.inversionCount).to.equal(1);
-    inverter.swap("F D");
-    expect(inverter.getAlg()).to.equal("F D");
-    expect(inverter.inversionCount).to.equal(1);
-    inverter.swap("F D");
-    inverter.invert();
-    expect(inverter.getAlg()).to.equal("D' F'");
-    expect(inverter.inversionCount).to.equal(2);
-  });
-});
+// TODO: create a mock BluetoothCube for testing.
