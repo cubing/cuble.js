@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "target": "es5",
-    "lib": [
-      "ES2015",
-      "DOM"
-    ],
+    "target": "es6",
 
     "rootDir": "src",
     "outDir": "",

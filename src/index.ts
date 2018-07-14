@@ -1,1 +1,1 @@
-export {GiikerCube} from "./giiker";
+export {GiiKerCube} from "./giiker";

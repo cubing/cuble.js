@@ -1,4 +1,4 @@
-import * as Alg from "alg"
+import {BlockMove} from "alg"
 
 var debug = console.info ? console.log.bind(console) : console.info.bind(console);
 
@@ -8,12 +8,16 @@ const UUIDs = {
 };
 
 class GiiKerEvent {
-  latestMove: any; // TODO
+  latestMove: BlockMove;
   timeStamp: number;
   stateStr: string;
 }
 
-export class GiikerCube {
+export abstract class BluetoothCube {
+  abstract async connect(): Promise<void>;
+}
+
+export class GiiKerCube {
   private listeners: any[] = []; // TODO: type
   private _originalValue: any; // TODO: type
   private cubeCharacteristic: any; // TODO: type
@@ -21,7 +25,7 @@ export class GiikerCube {
   private server: any; // TODO: type
   private device: any; // TODO: type
 
-  async connect() {
+  async connect(): Promise<void> {
     debug("Attempting to pair.")
     this.device = await navigator.bluetooth.requestDevice({
       filters: [{
@@ -47,24 +51,22 @@ export class GiikerCube {
     this._originalValue = await this.cubeCharacteristic.readValue();
     debug("Original value:", this._originalValue);
     this.cubeCharacteristic.addEventListener("characteristicvaluechanged",
-      this.onCubeCharacteristicChanged.bind(this));
+    this.onCubeCharacteristicChanged.bind(this));
   }
 
-  giikerMoveToAlgMove(face: number, amount: number) {
+  giikerMoveToAlgMove(face: number, amount: number): BlockMove {
     if (amount == 9) {
       console.error("Encountered 9", face, amount);
       amount = 2;
     }
+    amount = [0, 1, 2, -1][amount];
 
-    return {
-      type: "move",
-      base: ["?", "B", "D", "L", "U", "R", "F"][face],
-      amount: [0, 1, 2, -1][amount]
-    }
+    const family = ["?", "B", "D", "L", "U", "R", "F"][face];
+    return new BlockMove(family, amount);
   }
 
   // TODO: Web Bluetooth types
-  onCubeCharacteristicChanged(event: any) {
+  onCubeCharacteristicChanged(event: any): void {
     var val = event.target.value;
 
     if (this._originalValue) {
@@ -113,7 +115,7 @@ export class GiikerCube {
     }
   }
 
-  addEventListener(listener: () => GiiKerEvent) {
+  addEventListener(listener: () => GiiKerEvent): void {
     this.listeners.push(listener);
   }
 }

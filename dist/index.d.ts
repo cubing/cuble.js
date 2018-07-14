@@ -1,1 +1,0 @@
-export { GiikerCube } from "./giiker";
