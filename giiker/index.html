@@ -46,8 +46,98 @@
         <br><br>
         <input id="cuber" placeholder="Cuber">
         <br>
-        <textarea class="alg" id="moves" rows=8>
+        <textarea class="alg" id="moves" rows=8 style="display: none;">
         </textarea>
+        <style>
+          td {
+            color: white;
+            text-align: center;
+            height: 30px;
+            border: 1px solid black;
+          }
+          td.cube {
+            width: 30px;
+          }
+          td.red {
+            background-color: pink;
+          }
+          td.green {
+            background-color: #59f2d3;
+          }
+          td.white {
+            color: black;
+            background-color: white;
+          }
+          td.yellow {
+            color: black;
+            background-color: yellow;
+          }
+          td.blue {
+            background-color: #2f70fc;
+          }
+          td.orange {
+            background-color: #FF7B00;
+          }
+        </style>
+
+        <table>
+          <tr>
+            <td colspan="3" style="border: 0px;"></td>
+            <td id="c7-1" class="cube"></td><td id="e11-1" class="cube"></td><td id="c6-1" class="cube"></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="e7-0" class="cube"></td><td class="cube white"></td><td id="e6-0" class="cube"></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="c3-1" class="cube"></td><td id="e3-1" class="cube"></td><td id="c2-1" class="cube"></td>
+          </tr>
+
+          <tr>
+            <td id="c7-2" class="cube"></td><td id="e7-1" class="cube"></td><td id="c3-2" class="cube"></td>
+            <td id="c3-3" class="cube"></td><td id="e3-0" class="cube"></td><td id="c2-3" class="cube"></td>
+            <td id="c2-2" class="cube"></td><td id="e6-1" class="cube"></td><td id="c6-2" class="cube"></td>
+          </tr>
+          <tr>
+            <td id="e12-1" class="cube"></td><td class="cube orange"></td><td id="e4-1" class="cube"></td>
+            <td id="e4-0" class="cube"></td><td class="cube green"  ></td><td id="e2-0" class="cube"></td>
+            <td id="e2-1" class="cube"></td><td class="cube red"    ></td><td id="e10-1" class="cube"></td>
+          </tr>
+          <tr>
+            <td id="c8-2" class="cube"></td><td id="e8-1" class="cube"></td><td id="c4-2" class="cube"></td>
+            <td id="c4-3" class="cube"></td><td id="e1-0" class="cube"></td><td id="c1-3" class="cube"></td>
+            <td id="c1-2" class="cube"></td><td id="e5-1" class="cube"></td><td id="c5-2" class="cube"></td>
+          </tr>
+
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="c4-1" class="cube"></td><td id="e1-1" class="cube"></td><td id="c1-1" class="cube"></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="e8-0" class="cube"></td><td class="cube yellow"></td><td id="e5-0" class="cube"></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="c8-1" class="cube"></td><td id="e9-1" class="cube"></td><td id="c5-1" class="cube"></td>
+          </tr>
+
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="c8-3" class="cube"></td><td id="e9-0" class="cube"></td><td id="c5-3" class="cube"></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="e12-0" class="cube"></td><td class="cube blue"></td><td id="e10-0" class="cube"></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 0px; width: 45px;"></td>
+            <td id="c7-3" class="cube"></td><td id="e11-0" class="cube"></td><td id="c6-3" class="cube"></td>
+          </tr>
+        </table>
+        <p class="padded" id="solve-state">
+        </p>
       </div>
       <style>
         .alg {
@@ -89,7 +179,7 @@
           <p class="spacey">
             <input id="cubeDimension" placeholder="Cube Dimension"
               type="number" min="1" max="12" step="1" value="3" /> <br>
-            
+
             <input type="checkbox" id="allow_dragging" checked="true"/>
             <label for="allow_dragging">Allow Dragging</label>
             <input type="checkbox" id="sticker_border" checked="true" />
@@ -127,7 +217,7 @@
             <label for="stage_PLL">PLL</label>
             <input type="radio" name="stage" value="OLL" id="stage_OLL"></input>
             <label for="stage_OLL">OLL</label>
-            
+
             <br>
             Init: <input id="init" placeholder="Init." type="text" value = ""/>
             <br>
@@ -136,7 +226,7 @@
             <br>
             <button id="parsed_alg1">Animate Alg (no slice moves)</button>
             <button id="parsed_alg2">Dynamic Playback</button>
-            
+
           </p>
       </div>
 
