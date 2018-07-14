@@ -1,3 +1,5 @@
+<img alt="CuBLE logo" src="CuBLE.png" width="96" height="96">
+
 # CuBLE
 
 This is a library for connecting to Bluetooth cubes and other puzzles.
