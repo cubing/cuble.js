@@ -1,118 +1,128 @@
 import {SiGNMove, BareSiGNMove} from "alg"
-import {BluetoothCube} from "./bluetooth-cube"
 
-var debug = console.info ? console.log.bind(console) : console.info.bind(console);
+import {MoveEvent, BluetoothConfig, BluetoothPuzzle} from "./bluetooth-puzzle"
+import {debugLog} from "./debug"
 
 const UUIDs = {
   cubeService: "0000aadb-0000-1000-8000-00805f9b34fb",
   cubeCharacteristic: "0000aadc-0000-1000-8000-00805f9b34fb"
 };
 
-class GiiKerEvent {
-  latestMove: SiGNMove;
-  timeStamp: number;
-  stateStr: string;
+// TODO: Move this into a factory?
+export const giiKERi3Config: BluetoothConfig = {
+  filter: {
+    namePrefix: "GiC"
+  },
+  optionalServices: [
+    // "00001530-1212-efde-1523-785feabcd123",
+    // "0000aaaa-0000-1000-8000-00805f9b34fb",
+    UUIDs.cubeService
+    // "0000180f-0000-1000-8000-00805f9b34fb",
+    // "0000180a-0000-1000-8000-00805f9b34fb"
+  ]
 }
 
-export class GiiKerCube extends BluetoothCube {
-  private listeners: any[] = []; // TODO: type
-  private _originalValue: any; // TODO: type
-  private cubeCharacteristic: any; // TODO: type
-  private cubeService: any; // TODO: type
-  private server: any; // TODO: type
-  private device: any; // TODO: type
+// TODO: Expose for testing.
+function giikerMoveToSiGNMove(face: number, amount: number): SiGNMove {
+  if (amount == 9) {
+    console.error("Encountered 9", face, amount);
+    amount = 2;
+  }
+  amount = [0, 1, 2, -1][amount];
 
-  async connect(): Promise<void> {
-    debug("Attempting to pair.")
-    this.device = await navigator.bluetooth.requestDevice({
-      filters: [{
-        namePrefix: "GiC"
-      }],
-      optionalServices: [
-        "00001530-1212-efde-1523-785feabcd123",
-        "0000aaaa-0000-1000-8000-00805f9b34fb",
-        "0000aadb-0000-1000-8000-00805f9b34fb",
-        "0000180f-0000-1000-8000-00805f9b34fb",
-        "0000180a-0000-1000-8000-00805f9b34fb"
-      ]
-    });
-    debug("Device:", this.device);
-    this.server = await this.device.gatt.connect();
-    var x = debug("Server:", this.server);
-    this.cubeService = await this.server.getPrimaryService(UUIDs.cubeService);
-    debug("Service:", this.cubeService);
-    this.cubeCharacteristic = await this.cubeService.getCharacteristic(UUIDs.cubeCharacteristic);
-    debug(this.cubeCharacteristic);
-    await this.cubeCharacteristic.startNotifications();
+  const family = ["?", "B", "D", "L", "U", "R", "F"][face];
+  return BareSiGNMove(family, amount);
+}
+
+export {giikerMoveToSiGNMove as giikerMoveToSiGNMoveForTesting};
+
+function giikerStateStr(giikerState: Array<number>): string {
+  var str = "";
+  str += giikerState.slice(0, 8).join(".");
+  str += "\n"
+  str += giikerState.slice(8, 16).join(".");
+  str += "\n"
+  str += giikerState.slice(16, 28).join(".");
+  str += "\n"
+  str += giikerState.slice(28, 32).join(".");
+  str += "\n"
+  str += giikerState.slice(32, 40).join(".");
+  return str;
+}
+
+export class GiiKERi3Cube extends BluetoothPuzzle {
+  private originalValue: DataView | null | undefined = undefined;
+
+  static async connect(server: BluetoothRemoteGATTServer): Promise<GiiKERi3Cube> {
+
+    const cubeService = await server.getPrimaryService(UUIDs.cubeService);
+    debugLog("Service:", cubeService);
+    
+    const cubeCharacteristic = await cubeService.getCharacteristic(UUIDs.cubeCharacteristic);
+    debugLog("Characteristic:", cubeCharacteristic);
+
     // TODO: Can we safely save the async promise instead of waiting for the response?
-    this._originalValue = await this.cubeCharacteristic.readValue();
-    debug("Original value:", this._originalValue);
-    this.cubeCharacteristic.addEventListener("characteristicvaluechanged",
-    this.onCubeCharacteristicChanged.bind(this));
+
+    var cube = new GiiKERi3Cube();
+    cube.originalValue = await cubeCharacteristic.readValue();
+    debugLog("Original value:", cube.originalValue);
+
+    await cubeCharacteristic.startNotifications();
+    cubeCharacteristic.addEventListener(
+      "characteristicvaluechanged",
+      cube.onCubeCharacteristicChanged.bind(cube)
+    );
+
+    return cube;
   }
 
-  giikerMoveToAlgMove(face: number, amount: number): SiGNMove {
-    if (amount == 9) {
-      console.error("Encountered 9", face, amount);
-      amount = 2;
-    }
-    amount = [0, 1, 2, -1][amount];
-
-    const family = ["?", "B", "D", "L", "U", "R", "F"][face];
-    return BareSiGNMove(family, amount);
-  }
-
-  // TODO: Web Bluetooth types
-  onCubeCharacteristicChanged(event: any): void {
+  private onCubeCharacteristicChanged(event: any): void {
     var val = event.target.value;
+    debugLog(val);
 
-    if (this._originalValue) {
-      debug("Comparing against original value.")
-      var same = true;
-      for (var i = 0; i < 20; i++) {
-        if (this._originalValue.getUint8(i) != val.getUint8(i)) {
-          debug("Different at index ", i);
-          same = false;
-          break;
-        }
-      }
-      this._originalValue = null;
-      if (same) {
-        debug("Skipping extra first event.")
-        return;
-      }
+    if (this.isRepeatedInitialValue(val)) {
+        debugLog("Skipping repeated initial value.")
+      return;
     }
 
-    debug(val);
-    // debug(event.target);
-    debug(event);
     var giikerState = [];
     for (var i = 0; i < 20; i++) {
       giikerState.push(Math.floor(val.getUint8(i) / 16));
       giikerState.push(val.getUint8(i) % 16);
     }
-    var str = "";
-    str += giikerState.slice(0, 8).join(".");
-    str += "\n"
-    str += giikerState.slice(8, 16).join(".");
-    str += "\n"
-    str += giikerState.slice(16, 28).join(".");
-    str += "\n"
-    str += giikerState.slice(28, 32).join(".");
-    str += "\n"
-    str += giikerState.slice(32, 40).join(".");
-    debug(str);
+    const str = giikerStateStr(giikerState);
+    debugLog(str);
 
-    for (var l of this.listeners) {
-      l(<GiiKerEvent>{
-        latestMove: this.giikerMoveToAlgMove(giikerState[32], giikerState[33]),
-        timeStamp: event.timeStamp,
+    this.dispatchMove({
+      latestMove: giikerMoveToSiGNMove(giikerState[32], giikerState[33]),
+      timeStamp: event.timeStamp,
+      debug: {
         stateStr: str
-      });
-    }
+      }
+    });
   }
 
-  addEventListener(listener: () => GiiKerEvent): void {
-    this.listeners.push(listener);
+  private isRepeatedInitialValue(val: DataView): boolean {
+    if (typeof (this.originalValue) === "undefined") {
+      // TODO: Test this branch.
+      throw "GiiKERCube has uninitialized original value."
+    }
+
+    if (this.originalValue === null) {
+      return false;
+    }
+
+    const originalValue = this.originalValue;
+    // Reset the value here, so we can return early below.
+    this.originalValue = null;
+
+    debugLog("Comparing against original value.")
+    for (var i = 0; i < 20; i++) {
+      if (originalValue.getUint8(i) != val.getUint8(i)) {
+        debugLog("Different at index ", i);
+        return false;
+      }
+    }
+    return true;
   }
 }

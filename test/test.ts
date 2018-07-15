@@ -1,18 +1,27 @@
-import {BlockMove, structureEquals} from "alg"
-import {GiiKerCube} from "../src/giiker"
+import {Sequence, structureEquals, parse} from "alg"
+
+import {GiiKERi3Cube, giikerMoveToSiGNMoveForTesting} from "../src/giiker"
 
 import { expect } from "chai";
 
 describe("GiiKerCube", () => {
   it("should be possible to construct", () => {
-    new GiiKerCube();
+    new GiiKERi3Cube();
   });
 
   it("should calculate giikerMoveToAlgMove() correctly", () => {
-    var cube = new GiiKerCube();
-    expect(structureEquals(cube.giikerMoveToAlgMove(1, 1), new BlockMove("B", 1))).to.be.true;
-    expect(structureEquals(cube.giikerMoveToAlgMove(2, 3), new BlockMove("D", -1))).to.be.true;
-    expect(structureEquals(cube.giikerMoveToAlgMove(3, 9), new BlockMove("L", 2))).to.be.true;
+    expect(structureEquals(
+      new Sequence([giikerMoveToSiGNMoveForTesting(1, 1)]),
+      parse("B")
+    )).to.be.true;
+    expect(structureEquals(
+      new Sequence([giikerMoveToSiGNMoveForTesting(2, 3)]),
+      parse("D'")
+    )).to.be.true;
+    expect(structureEquals(
+      new Sequence([giikerMoveToSiGNMoveForTesting(3, 9)]),
+      parse("L2")
+    )).to.be.true;
   });
 });
 
