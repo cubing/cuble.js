@@ -1,4 +1,4 @@
-import {BlockMove} from "alg"
+import {SiGNMove, BareSiGNMove} from "alg"
 import {BluetoothCube} from "./bluetooth-cube"
 
 var debug = console.info ? console.log.bind(console) : console.info.bind(console);
@@ -9,7 +9,7 @@ const UUIDs = {
 };
 
 class GiiKerEvent {
-  latestMove: BlockMove;
+  latestMove: SiGNMove;
   timeStamp: number;
   stateStr: string;
 }
@@ -51,7 +51,7 @@ export class GiiKerCube extends BluetoothCube {
     this.onCubeCharacteristicChanged.bind(this));
   }
 
-  giikerMoveToAlgMove(face: number, amount: number): BlockMove {
+  giikerMoveToAlgMove(face: number, amount: number): SiGNMove {
     if (amount == 9) {
       console.error("Encountered 9", face, amount);
       amount = 2;
@@ -59,7 +59,7 @@ export class GiiKerCube extends BluetoothCube {
     amount = [0, 1, 2, -1][amount];
 
     const family = ["?", "B", "D", "L", "U", "R", "F"][face];
-    return new BlockMove(family, amount);
+    return BareSiGNMove(family, amount);
   }
 
   // TODO: Web Bluetooth types

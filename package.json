@@ -9,7 +9,7 @@
   "main": "./dist/cuble.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "alg": "^0.9.6"
+    "alg": "^0.9.8"
   },
   "externalsForWebpack": [
     "alg"
