@@ -65,7 +65,7 @@ export async function connect(): Promise<BluetoothPuzzle> {
   }
 
   const server = await device.gatt.connect();
-    debugLog("Server:", server);
+  debugLog("Server:", server);
 
   // TODO: Detect GiiKERi3Cube instead of assuming.
   return await GiiKERi3Cube.connect(server);
