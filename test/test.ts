@@ -5,9 +5,9 @@ import {GiiKERi3Cube, giikerMoveToSiGNMoveForTesting} from "../src/giiker"
 import { expect } from "chai";
 
 describe("GiiKerCube", () => {
-  it("should be possible to construct", () => {
-    new GiiKERi3Cube();
-  });
+  // it("should be possible to construct", () => {
+  //   new GiiKERi3Cube();
+  // });
 
   it("should calculate giikerMoveToAlgMove() correctly", () => {
     expect(structureEquals(

@@ -17,6 +17,8 @@ export class MoveEvent {
 export abstract class BluetoothPuzzle {
   protected listeners: any[] = []; // TODO: type
 
+  public abstract name(): string | undefined;
+
   public addMoveListener(listener: () => MoveEvent): void {
     this.listeners.push(listener);
   }

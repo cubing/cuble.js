@@ -51,7 +51,13 @@ function giikerStateStr(giikerState: Array<number>): string {
 }
 
 export class GiiKERi3Cube extends BluetoothPuzzle {
-  private originalValue: DataView | null | undefined = undefined;
+  private constructor(private server: BluetoothRemoteGATTServer, private originalValue: DataView | null | undefined = undefined) {
+    super();
+  }
+
+  public name(): string | undefined {
+    return this.server.device.name;
+  }
 
   static async connect(server: BluetoothRemoteGATTServer): Promise<GiiKERi3Cube> {
 
@@ -63,9 +69,9 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
 
     // TODO: Can we safely save the async promise instead of waiting for the response?
 
-    var cube = new GiiKERi3Cube();
-    cube.originalValue = await cubeCharacteristic.readValue();
-    debugLog("Original value:", cube.originalValue);
+    const originalValue = await cubeCharacteristic.readValue();
+    debugLog("Original value:", originalValue);
+    var cube = new GiiKERi3Cube(server, originalValue);
 
     await cubeCharacteristic.startNotifications();
     cubeCharacteristic.addEventListener(
