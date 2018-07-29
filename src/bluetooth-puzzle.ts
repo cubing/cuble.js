@@ -10,16 +10,16 @@ import {giiKERi3Config, GiiKERi3Cube} from "./giiker"
 export class MoveEvent {
   latestMove: SiGNMove;
   timeStamp: number;
-  debug: Object;
+  debug?: Object;
 }
 
 // TODO: Expose device name (and/or globally unique identifier)?
 export abstract class BluetoothPuzzle {
-  protected listeners: any[] = []; // TODO: type
+  protected listeners: ((e: MoveEvent) => void)[] = []; // TODO: type
 
   public abstract name(): string | undefined;
 
-  public addMoveListener(listener: () => MoveEvent): void {
+  public addMoveListener(listener: (e: MoveEvent) => void): void {
     this.listeners.push(listener);
   }
 
