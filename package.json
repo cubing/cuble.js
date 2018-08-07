@@ -1,7 +1,7 @@
 {
   "name": "cuble",
   "main": "./dist/cuble.js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Library to connect to bluetooth-enabled puzzles.",
   "author": "Lucas Garron <code@garron.net> (https://garron.net/)",
   "license": "MIT",
