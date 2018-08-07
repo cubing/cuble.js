@@ -3,5 +3,32 @@
   <script src="../../node_modules/alg/dist/alg.js"></script>
   <script src="../../dist/cuble.js"></script>
 <body>
-<body>
+<button onclick="connectBluetooth()">Connect</button>
+<button onclick="connectKeyboard()">Enable Keyboard Input</button>
+<button onclick="reset()">Reset</button>
+<br>
+<span id="alg"></span>
+<script>
+const {Sequence, algToString} = alg;
+const {connect, debugKeyboardConnect} = cuble;
+
+function onMove(e) {
+  document.querySelector("#alg").textContent += " " + algToString(new Sequence([e.latestMove]));
+}
+
+async function connectBluetooth() {
+  const puzzle = await connect();
+  puzzle.addMoveListener(onMove);
+}
+
+async function connectKeyboard() {
+  const puzzle = await debugKeyboardConnect();
+  puzzle.addMoveListener(onMove);
+}
+
+function reset() {
+  document.querySelector("#alg").textContent = "";
+}
+</script>
+</body>
 </html>
