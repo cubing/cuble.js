@@ -14,13 +14,16 @@ export class KeyboardPuzzle extends BluetoothPuzzle {
   }
 
   private onKeyDown(e: KeyboardEvent) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+      return;
+    }
+
     const move = keyToMove(e);
     if (move) {
       this.dispatchMove({
         latestMove: move,
         timeStamp: e.timeStamp
       });
-    } else {
       e.preventDefault();
     }
   }
