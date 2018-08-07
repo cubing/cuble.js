@@ -1,12 +1,12 @@
 {
   "name": "cuble",
+  "main": "./dist/cuble.js",
   "version": "0.0.1",
   "description": "Library to connect to bluetooth-enabled puzzles.",
   "author": "Lucas Garron <code@garron.net> (https://garron.net/)",
   "license": "MIT",
   "repository": "github:cubing/bluetooth",
   "bugs": {"url" : "https://github.com/cubing/bluetooth/issues"},
-  "main": "./dist/cuble.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
     "alg": "^0.9.12"
