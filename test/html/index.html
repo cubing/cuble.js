@@ -1,24 +1,37 @@
 <html>
   <title>CuBLE.js Test</title>
   <script src="../../node_modules/alg/dist/alg.js"></script>
+  <script src="../../node_modules/kpuzzle/dist/kpuzzle.js"></script>
   <script src="../../dist/cuble.js"></script>
+  <style>
+  .svg-wrapper {
+     max-width: 100px
+  }
+</style>
 <body>
 <button onclick="connectBluetooth()">Connect</button>
 <button onclick="connectKeyboard()">Enable Keyboard Input</button>
 <button onclick="reset()">Reset</button>
+<span id="display"></span>
 <br>
 <span id="alg"></span>
 <script>
 const {Sequence, algToString} = alg;
+const {Puzzles, SVG} = kpuzzle;
 const {connect, debugKeyboardConnect} = cuble;
+
+const def = Puzzles["333"];
+const svg = new SVG(def);
 
 function onMove(e) {
   document.querySelector("#alg").textContent += " " + algToString(new Sequence([e.latestMove]));
+  svg.draw(def, e.state);
 }
 
 async function connectBluetooth() {
   const puzzle = await connect();
   puzzle.addMoveListener(onMove);
+  document.getElementById("display").appendChild(svg.element);
 }
 
 async function connectKeyboard() {

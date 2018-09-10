@@ -1,6 +1,7 @@
 import {SiGNMove, BareSiGNMove} from "alg"
+import {Transformation} from "kpuzzle"
 
-import {MoveEvent, BluetoothConfig, BluetoothPuzzle} from "./bluetooth-puzzle"
+import {MoveEvent, BluetoothConfig, BluetoothPuzzle, PuzzleState} from "./bluetooth-puzzle"
 import {debugLog} from "./debug"
 
 const UUIDs = {
@@ -50,8 +51,33 @@ function giikerStateStr(giikerState: Array<number>): string {
   return str;
 }
 
+const Reid333Orbits = {
+  "EDGE":   {"numPieces": 12, "orientations": 2},
+  "CORNER": {"numPieces": 8,  "orientations": 3},
+  "CENTER": {"numPieces": 6,  "orientations": 4}
+};
+
+const Reid333SolvedCenters = {
+  "permutation": [0,1,2,3,4,5],
+  "orientation": [0,0,0,0,0,0]
+};
+
+const epGiiKERtoReid333: number[] = [4, 8, 0, 9, 5, 1, 3, 7, 6, 10, 2, 11];
+const epReid333toGiiKER: number[] = [2, 5, 10, 6, 0, 4, 8, 7, 1, 3, 9, 11];
+
+const preEO: number[] = [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0];
+const postEO: number[] = [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0];
+
+const cpGiiKERtoReid333: number[] = [4, 0, 3, 5, 7, 1, 2, 6];
+const cpReid333toGiiKER: number[] = [1, 5, 6, 2, 0, 3, 7, 4];
+
+const preCO: number[] = [1, 2, 1, 2, 2, 1, 2, 1];
+const postCO: number[] = [2, 1, 2, 1, 1, 2, 1, 2];
+
+const coFlip: number[] = [-1, 1, -1, 1, 1, -1, 1, -1];
+
 export class GiiKERi3Cube extends BluetoothPuzzle {
-  private constructor(private server: BluetoothRemoteGATTServer, private originalValue: DataView | null | undefined = undefined) {
+  private constructor(private server: BluetoothRemoteGATTServer, private cubeCharacteristic: BluetoothRemoteGATTCharacteristic, private originalValue: DataView | null | undefined = undefined) {
     super();
   }
 
@@ -71,7 +97,7 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
 
     const originalValue = await cubeCharacteristic.readValue();
     debugLog("Original value:", originalValue);
-    var cube = new GiiKERi3Cube(server, originalValue);
+    var cube = new GiiKERi3Cube(server, cubeCharacteristic, originalValue);
 
     await cubeCharacteristic.startNotifications();
     cubeCharacteristic.addEventListener(
@@ -80,6 +106,49 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
     );
 
     return cube;
+  }
+
+  private getNibble(val: DataView, i: number): number {
+    if (i % 2 == 1) {
+      return val.getUint8((i / 2) | 0) % 16;
+    }
+    return 0 | (val.getUint8((i / 2) | 0) / 16);
+  }
+
+  private getBit(val: DataView, i: number): number {
+    const n = ((i / 8) | 0);
+    const shift = 7 - (i % 8);
+    return (val.getUint8(n) >> shift) & 1;
+  }
+
+  private toReid333(val: DataView): Transformation {
+    var state = {
+      "EDGE": {
+        permutation: new Array(12),
+        orientation: new Array(12)
+      },
+      "CORNER": {
+        permutation: new Array(8),
+        orientation: new Array(8)
+      },
+      "CENTER": Reid333SolvedCenters
+    }
+
+    for (var i = 0; i < 12; i++) {
+      const gi = epReid333toGiiKER[i];
+      state["EDGE"].permutation[i] = epGiiKERtoReid333[this.getNibble(val, gi + 16) - 1];
+      state["EDGE"].orientation[i] = this.getBit(val, gi + 112) ^ preEO[state["EDGE"].permutation[i]] ^ postEO[i];
+    }
+    for (var i = 0; i < 8; i++) {
+      const gi = cpReid333toGiiKER[i];
+      state["CORNER"].permutation[i] = cpGiiKERtoReid333[this.getNibble(val, gi) - 1];
+      state["CORNER"].orientation[i] = (this.getNibble(val, gi + 8) * coFlip[gi] + preCO[state["CORNER"].permutation[i]] + postCO[i]) % 3;
+    }
+    return state;
+  }
+
+  async getState(): Promise<PuzzleState | null> {
+    return this.toReid333(await this.cubeCharacteristic.readValue());
   }
 
   private onCubeCharacteristicChanged(event: any): void {
@@ -104,7 +173,8 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
       timeStamp: event.timeStamp,
       debug: {
         stateStr: str
-      }
+      },
+      state: this.toReid333(val)
     });
   }
 

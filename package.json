@@ -6,13 +6,17 @@
   "author": "The js.cubing.net team",
   "license": "GPL-3.0-or-later",
   "repository": "github:cubing/bluetooth",
-  "bugs": {"url" : "https://github.com/cubing/bluetooth/issues"},
+  "bugs": {
+    "url": "https://github.com/cubing/bluetooth/issues"
+  },
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "alg": "^0.9.16"
+    "alg": "^0.9.16",
+    "kpuzzle": "^0.9.16"
   },
   "externalsForWebpack": [
-    "alg"
+    "alg",
+    "kpuzzle"
   ],
   "devDependencies": {
     "@types/chai": "^4.1.4",
