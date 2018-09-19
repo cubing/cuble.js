@@ -1,4 +1,4 @@
-import {SiGNMove} from "alg"
+import {BlockMove} from "alg"
 import {Transformation} from "kpuzzle"
 
 import {debugLog} from "./debug"
@@ -12,7 +12,7 @@ export type PuzzleState = Transformation
 // TODO: Use actual `CustomEvent`s?
 // https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
 export class MoveEvent {
-  latestMove: SiGNMove;
+  latestMove: BlockMove;
   timeStamp: number;
   debug?: Object;
   state?: PuzzleState

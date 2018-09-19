@@ -1,4 +1,4 @@
-import {SiGNMove, BareSiGNMove} from "alg"
+import {BlockMove, BareBlockMove} from "alg"
 import {Transformation} from "kpuzzle"
 
 import {MoveEvent, BluetoothConfig, BluetoothPuzzle, PuzzleState} from "./bluetooth-puzzle"
@@ -24,7 +24,7 @@ export const giiKERi3Config: BluetoothConfig = {
 }
 
 // TODO: Expose for testing.
-function giikerMoveToSiGNMove(face: number, amount: number): SiGNMove {
+function giikerMoveToBlockMove(face: number, amount: number): BlockMove {
   if (amount == 9) {
     console.error("Encountered 9", face, amount);
     amount = 2;
@@ -32,10 +32,10 @@ function giikerMoveToSiGNMove(face: number, amount: number): SiGNMove {
   amount = [0, 1, 2, -1][amount];
 
   const family = ["?", "B", "D", "L", "U", "R", "F"][face];
-  return BareSiGNMove(family, amount);
+  return BareBlockMove(family, amount);
 }
 
-export {giikerMoveToSiGNMove as giikerMoveToSiGNMoveForTesting};
+export {giikerMoveToBlockMove as giikerMoveToBlockMoveForTesting};
 
 function giikerStateStr(giikerState: Array<number>): string {
   var str = "";
@@ -169,7 +169,7 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
     debugLog(str);
 
     this.dispatchMove({
-      latestMove: giikerMoveToSiGNMove(giikerState[32], giikerState[33]),
+      latestMove: giikerMoveToBlockMove(giikerState[32], giikerState[33]),
       timeStamp: event.timeStamp,
       debug: {
         stateStr: str
