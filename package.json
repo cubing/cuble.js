@@ -1,7 +1,7 @@
 {
   "name": "cuble",
   "main": "./dist/cuble.js",
-  "version": "0.9.16",
+  "version": "0.9.17",
   "description": "Library to connect to bluetooth-enabled puzzles.",
   "author": "The js.cubing.net team",
   "license": "GPL-3.0-or-later",
@@ -11,8 +11,8 @@
   },
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "alg": "^0.9.16",
-    "kpuzzle": "^0.9.16"
+    "alg": "^0.9.17",
+    "kpuzzle": "^0.9.17"
   },
   "externalsForWebpack": [
     "alg",
