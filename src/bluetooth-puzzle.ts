@@ -2,7 +2,7 @@ import {BlockMove} from "alg"
 import {Transformation} from "kpuzzle"
 
 import {debugLog} from "./debug"
-import {giiKERi3Config, GiiKERi3Cube} from "./giiker"
+import {giiKERConfigs, GiiKERCube} from "./giiker"
 
 /******** BluetoothPuzzle ********/
 
@@ -44,9 +44,9 @@ export abstract class BluetoothPuzzle {
 /******** requestOptions ********/
 
 export type BluetoothConfig = {
-  filter: BluetoothRequestDeviceFilter
-  optionalServices: Array<BluetoothServiceUUID>
-}
+  filters: BluetoothRequestDeviceFilter[];
+  optionalServices: BluetoothServiceUUID[];
+};
 
 function requestOptions(): RequestDeviceOptions {
   const requestOptions = {
@@ -54,9 +54,9 @@ function requestOptions(): RequestDeviceOptions {
     optionalServices: <Array<BluetoothServiceUUID>>[]
   };
   for (var config of [
-    giiKERi3Config
+    giiKERConfigs
   ]) {
-    requestOptions.filters.push(config.filter);
+    requestOptions.filters = requestOptions.filters.concat(config.filters);
     requestOptions.optionalServices = requestOptions.optionalServices.concat(config.optionalServices);
   }
   debugLog({requestOptions});
@@ -78,6 +78,6 @@ export async function connect(): Promise<BluetoothPuzzle> {
   const server = await device.gatt.connect();
   debugLog("Server:", server);
 
-  // TODO: Detect GiiKERi3Cube instead of assuming.
-  return await GiiKERi3Cube.connect(server);
+  // TODO: Detect GiiKERCube instead of assuming.
+  return await GiiKERCube.connect(server);
 }

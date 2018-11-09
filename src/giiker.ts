@@ -10,10 +10,11 @@ const UUIDs = {
 };
 
 // TODO: Move this into a factory?
-export const giiKERi3Config: BluetoothConfig = {
-  filter: {
-    namePrefix: "GiC"
-  },
+export const giiKERConfigs: BluetoothConfig = {
+  filters: [
+    {namePrefix: "GiC"},
+    {namePrefix: "GiS"}
+  ],
   optionalServices: [
     // "00001530-1212-efde-1523-785feabcd123",
     // "0000aaaa-0000-1000-8000-00805f9b34fb",
@@ -76,7 +77,7 @@ const postCO: number[] = [2, 1, 2, 1, 1, 2, 1, 2];
 
 const coFlip: number[] = [-1, 1, -1, 1, 1, -1, 1, -1];
 
-export class GiiKERi3Cube extends BluetoothPuzzle {
+export class GiiKERCube extends BluetoothPuzzle {
   private constructor(private server: BluetoothRemoteGATTServer, private cubeCharacteristic: BluetoothRemoteGATTCharacteristic, private originalValue: DataView | null | undefined = undefined) {
     super();
   }
@@ -85,7 +86,7 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
     return this.server.device.name;
   }
 
-  static async connect(server: BluetoothRemoteGATTServer): Promise<GiiKERi3Cube> {
+  static async connect(server: BluetoothRemoteGATTServer): Promise<GiiKERCube> {
 
     const cubeService = await server.getPrimaryService(UUIDs.cubeService);
     debugLog("Service:", cubeService);
@@ -97,7 +98,7 @@ export class GiiKERi3Cube extends BluetoothPuzzle {
 
     const originalValue = await cubeCharacteristic.readValue();
     debugLog("Original value:", originalValue);
-    var cube = new GiiKERi3Cube(server, cubeCharacteristic, originalValue);
+    var cube = new GiiKERCube(server, cubeCharacteristic, originalValue);
 
     await cubeCharacteristic.startNotifications();
     cubeCharacteristic.addEventListener(

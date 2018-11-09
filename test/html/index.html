@@ -18,7 +18,9 @@
 <script>
 const {Sequence, algToString} = alg;
 const {Puzzles, SVG} = kpuzzle;
-const {connect, debugKeyboardConnect} = cuble;
+const {connect, debugKeyboardConnect, enableDebugLogging} = cuble;
+
+enableDebugLogging(true);
 
 const def = Puzzles["333"];
 const svg = new SVG(def);
@@ -28,14 +30,17 @@ function onMove(e) {
   svg.draw(def, e.state);
 }
 
+const puzzles = [];
 async function connectBluetooth() {
   const puzzle = await connect();
   puzzle.addMoveListener(onMove);
+  puzzles.push(puzzle);
   document.getElementById("display").appendChild(svg.element);
 }
 
 async function connectKeyboard() {
   const puzzle = await debugKeyboardConnect();
+  puzzles.push(puzzle);
   puzzle.addMoveListener(onMove);
 }
 
