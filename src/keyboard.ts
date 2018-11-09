@@ -1,7 +1,11 @@
 import {keyToMove} from "alg"
+import {KPuzzle, Puzzles} from "kpuzzle"
 import {BluetoothPuzzle} from "./bluetooth-puzzle"
 
+const def = Puzzles["333"];
+
 export class KeyboardPuzzle extends BluetoothPuzzle {
+  public puzzle: KPuzzle = new KPuzzle(def);
   // TODO: Decide on the right arguments.
   constructor(target: any) {
     super();
@@ -20,9 +24,11 @@ export class KeyboardPuzzle extends BluetoothPuzzle {
 
     const move = keyToMove(e);
     if (move) {
+      this.puzzle.applyBlockMove(move);
       this.dispatchMove({
         latestMove: move,
-        timeStamp: e.timeStamp
+        timeStamp: e.timeStamp,
+        state: this.puzzle.state
       });
       e.preventDefault();
     }

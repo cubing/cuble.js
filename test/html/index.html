@@ -28,6 +28,7 @@ const svg = new SVG(def);
 function onMove(e) {
   document.querySelector("#alg").textContent += " " + algToString(new Sequence([e.latestMove]));
   svg.draw(def, e.state);
+  console.log(e);
 }
 
 const puzzles = [];
