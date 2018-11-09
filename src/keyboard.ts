@@ -25,7 +25,6 @@ export class KeyboardPuzzle extends BluetoothPuzzle {
     const move = keyToMove(e);
     if (move) {
       this.puzzle.applyBlockMove(move);
-      console.log("dispatch");
       this.dispatchMove({
         latestMove: move,
         timeStamp: e.timeStamp,
