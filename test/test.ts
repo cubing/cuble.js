@@ -1,6 +1,6 @@
 import {Sequence, structureEquals, parse} from "alg"
 
-import {GiiKERi3Cube, giikerMoveToBlockMoveForTesting} from "../src/giiker"
+import {giikerMoveToBlockMoveForTesting} from "../src/giiker"
 
 import { expect } from "chai";
 
