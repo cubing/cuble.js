@@ -6,7 +6,10 @@ import {debugLog} from "./debug"
 
 const UUIDs = {
   cubeService: "0000aadb-0000-1000-8000-00805f9b34fb",
-  cubeCharacteristic: "0000aadc-0000-1000-8000-00805f9b34fb"
+  cubeCharacteristic: "0000aadc-0000-1000-8000-00805f9b34fb",
+  statService: "0000aaaa-0000-1000-8000-00805f9b34fb",
+  statListenCharacteristic: "0000aaab-0000-1000-8000-00805f9b34fb",
+  statRequestCharacteristic: "0000aaac-0000-1000-8000-00805f9b34fb"
 };
 
 // TODO: Move this into a factory?
@@ -17,7 +20,7 @@ export const giiKERConfigs: BluetoothConfig = {
   ],
   optionalServices: [
     // "00001530-1212-efde-1523-785feabcd123",
-    // "0000aaaa-0000-1000-8000-00805f9b34fb",
+    UUIDs.statService,
     UUIDs.cubeService
     // "0000180f-0000-1000-8000-00805f9b34fb",
     // "0000180a-0000-1000-8000-00805f9b34fb"
@@ -106,7 +109,20 @@ export class GiiKERCube extends BluetoothPuzzle {
       cube.onCubeCharacteristicChanged.bind(cube)
     );
 
+    cube.experiment(server)
+
     return cube;
+  }
+
+  async experiment(server: BluetoothRemoteGATTServer) {
+    const statService = await this.server.getPrimaryService(UUIDs.statService);
+    console.log({statService})
+    const statListenCharacteristic = await statService.getCharacteristic(UUIDs.statListenCharacteristic);
+    console.log({statListenCharacteristic})
+    statListenCharacteristic.addEventListener("characteristicvaluechanged", console.log)
+    const statRequestCharacteristic = await statService.getCharacteristic(UUIDs.statRequestCharacteristic)
+    console.log({statRequestCharacteristic})
+    statRequestCharacteristic.writeValue(new Uint8Array([0xcc]))
   }
 
   private getNibble(val: DataView, i: number): number {
