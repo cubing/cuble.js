@@ -81,6 +81,7 @@ const postCO: number[] = [2, 1, 2, 1, 1, 2, 1, 2];
 const coFlip: number[] = [-1, 1, -1, 1, 1, -1, 1, -1];
 
 export class GiiKERCube extends BluetoothPuzzle {
+  statRequestCharacteristic: BluetoothRemoteGATTCharacteristic;
   private constructor(private server: BluetoothRemoteGATTServer, private cubeCharacteristic: BluetoothRemoteGATTCharacteristic, private originalValue: DataView | null | undefined = undefined) {
     super();
   }
@@ -116,13 +117,34 @@ export class GiiKERCube extends BluetoothPuzzle {
 
   async experiment(server: BluetoothRemoteGATTServer) {
     const statService = await this.server.getPrimaryService(UUIDs.statService);
-    console.log({statService})
+    debugLog("Stat Service:", statService);
     const statListenCharacteristic = await statService.getCharacteristic(UUIDs.statListenCharacteristic);
-    console.log({statListenCharacteristic})
-    statListenCharacteristic.addEventListener("characteristicvaluechanged", console.log)
-    const statRequestCharacteristic = await statService.getCharacteristic(UUIDs.statRequestCharacteristic)
-    console.log({statRequestCharacteristic})
-    statRequestCharacteristic.writeValue(new Uint8Array([0xcc]))
+    debugLog("Stat Listen Characteristic:", statListenCharacteristic);
+    await statListenCharacteristic.startNotifications();
+    statListenCharacteristic.addEventListener(
+      "characteristicvaluechanged",
+      this.onStatCharacteristicChanged.bind(this)
+    );
+    this.statRequestCharacteristic = await statService.getCharacteristic(UUIDs.statRequestCharacteristic)
+    console.log("Stat Request Characteristic:", this.statRequestCharacteristic);
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0x00]))
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0xb5]))
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0xb8]))
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0xb7]))
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0xba]))
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0xcc]))
+    await this.statRequestCharacteristic.writeValue(new Uint8Array([0xb8]))
+  }
+
+  onStatCharacteristicChanged(event: any) {
+    function bufferToHex(buffer: ArrayBuffer) {
+      var s = '', h = '0123456789ABCDEF';
+      (new Uint8Array(buffer)).forEach((v) => { s += h[v >> 4] + h[v & 15]; });
+      return s;
+    }
+    const val: DataView = event.target.value
+    console.log(bufferToHex(val.buffer));
+
   }
 
   private getNibble(val: DataView, i: number): number {
