@@ -1,7 +1,6 @@
 import {BluetoothPuzzle} from "./bluetooth-puzzle"
 import {debugLog} from "./debug"
-import {giiKERConfigs, GiiKERCube} from "./giiker"
-import {ganConfig, GanCube} from "./gan"
+import {giiKERConfig, GiiKERCube} from "./giiker"
 
 /******** requestOptions ********/
 
@@ -16,8 +15,7 @@ const requestOptions = {
     optionalServices: <Array<BluetoothServiceUUID>>[]
 };
 for (var config of [
-    giiKERConfigs,
-    ganConfig
+    giiKERConfig
 ]) {
     requestOptions.filters = requestOptions.filters.concat(config.filters);
     requestOptions.optionalServices = requestOptions.optionalServices.concat(config.optionalServices);

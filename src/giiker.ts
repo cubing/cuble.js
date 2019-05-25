@@ -10,7 +10,7 @@ const UUIDs = {
 };
 
 // TODO: Move this into a factory?
-export const giiKERConfigs: BluetoothConfig = {
+export const giiKERConfig: BluetoothConfig = {
   filters: [
     {namePrefix: "GiC"},
     {namePrefix: "GiS"}
