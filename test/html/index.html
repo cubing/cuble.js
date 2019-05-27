@@ -15,6 +15,11 @@
 <span id="display"></span>
 <br>
 <span id="alg"></span>
+<br>
+<button onclick="start()">Start</button>
+<button onclick="resume()">Resume</button>
+<br>
+<textarea id="log" rows=20 style="font-family: monospace; width: 80%"></textarea>
 <script>
 const {Sequence, algToString} = alg;
 const {Puzzles, SVG} = kpuzzle;
@@ -28,8 +33,28 @@ const svg = new SVG(def);
 function onMove(e) {
   document.querySelector("#alg").textContent += " " + algToString(new Sequence([e.latestMove]));
   svg.draw(def, e.state);
-  console.log(e);
+  // console.log(e);
 }
+
+// var running = null;
+// function start() {
+//   running = setInterval(display.bind(display, puzzles[0]), 1000)
+// }
+
+// function pause() {
+//   clearInterval(running);
+//   running = null;
+// }
+
+// async function display(puzzle) {
+//   try {
+//     const state = await puzzle.getState();
+//     const l = document.querySelector("#log");
+//     l.textContent = state.substring(0, 1000) + "\n" + l.textContent;
+//   } catch(e) {
+//     console.error(e)
+//   }
+// }
 
 const puzzles = [];
 async function connectBluetooth() {

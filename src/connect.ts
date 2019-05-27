@@ -1,6 +1,7 @@
 import {BluetoothPuzzle} from "./bluetooth-puzzle"
 import {debugLog} from "./debug"
 import {giiKERConfig, GiiKERCube} from "./giiker"
+import {ganConfig, GanCube} from "./gan"
 
 /******** requestOptions ********/
 
@@ -15,7 +16,8 @@ const requestOptions = {
     optionalServices: <Array<BluetoothServiceUUID>>[]
 };
 for (var config of [
-    giiKERConfig
+    giiKERConfig,
+    ganConfig
 ]) {
     requestOptions.filters = requestOptions.filters.concat(config.filters);
     requestOptions.optionalServices = requestOptions.optionalServices.concat(config.optionalServices);
@@ -39,6 +41,10 @@ export async function connect(): Promise<BluetoothPuzzle> {
   const server = await device.gatt.connect();
   debugLog("Server:", server);
 
-  // TODO: Detect GiiKERCube instead of assuming.
-  return await GiiKERCube.connect(server);
+  // TODO by reading supported matched filters or provided services.
+  if (server.device!.name!.substring(0, 3) == "GAN") {
+    return await GanCube.connect(server);
+  } else {
+    return await GiiKERCube.connect(server);
+  }
 }
