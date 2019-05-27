@@ -1,7 +1,7 @@
 {
   "name": "cuble",
   "main": "./dist/cuble.js",
-  "version": "0.9.17",
+  "version": "0.9.19",
   "description": "Library to connect to bluetooth-enabled puzzles.",
   "author": "The js.cubing.net team",
   "license": "GPL-3.0-or-later",
