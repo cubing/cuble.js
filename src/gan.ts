@@ -25,6 +25,7 @@ const ganMoveToBlockMove: {[i: number]: BlockMove} = {
 }
 
 class PhysicalState {
+  public static characteristic = "0000fff5-0000-1000-8000-00805f9b34fb";
   private arr: Uint8Array;
   private arrLen = 19;
   private constructor(dataView: DataView, public timeStamp: number) {
@@ -69,19 +70,9 @@ class PhysicalState {
 // TODO: Short IDs
 const UUIDs = {
   ganCubeService: "0000fff0-0000-1000-8000-00805f9b34fb",
-  // specialInstrCharacteristic: "0000fff1-0000-1000-8000-00805f9b34fb",
-  faceletStatus1Characteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
-  faceletStatus2Characteristic: "0000fff3-0000-1000-8000-00805f9b34fb",
-  characteristic4: "0000fff4-0000-1000-8000-00805f9b34fb",
-  // The Gan cube provides the following descriptors:
-  // - fff5: Angle and Battery
-  // - fff7: Gyroscopic Data
-  // However, the actual data values seem to be swapped from their descriptors.
-  // We "relabel" these characteristics according to their actual use.
-  relabeledGyroscopicDataCharacteristic: "0000fff5-0000-1000-8000-00805f9b34fb",
-  // quaternionDataCharacteristic: "0000fff6-0000-1000-8000-00805f9b34fb",
-  relabeledAngleAndBatteryCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb"
-  // deviceNameConfigCharacteristic: "0000fff8-0000-1000-8000-00805f9b34fb"
+  physicalStateCharacteristic: PhysicalState.characteristic,
+  // cubeCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb"
+  commandCharacteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
 };
 
 const commands: {[cmd: string]: BufferSource} = {
@@ -108,8 +99,8 @@ export class GanCube extends BluetoothPuzzle {
   private intervalHandle: number | null = null;
   // TODO: Find out how to read the state from the cube.
   private kpuzzle: KPuzzle = new KPuzzle(Puzzles["333"]);
-  private cachedFaceletStatus1Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
-  private constructor(private service: BluetoothRemoteGATTService, private server: BluetoothRemoteGATTServer, private relabeledAngleAndBatteryCharacteristic: BluetoothRemoteGATTCharacteristic, private lastMoveCounter: number) {
+  private cachedCommandCharacteristic: Promise<BluetoothRemoteGATTCharacteristic>
+  private constructor(private service: BluetoothRemoteGATTService, private server: BluetoothRemoteGATTServer, private physicalStateCharacteristic: BluetoothRemoteGATTCharacteristic, private lastMoveCounter: number) {
     super();
     this.startTrackingMoves();
   }
@@ -124,12 +115,12 @@ export class GanCube extends BluetoothPuzzle {
     const ganCubeService = await server.getPrimaryService(UUIDs.ganCubeService);
     debugLog("Service:", ganCubeService);
     
-    const faceletStatus1Characteristic = await ganCubeService.getCharacteristic(UUIDs.faceletStatus1Characteristic);
-    debugLog("Characteristic:", faceletStatus1Characteristic);
+    const physicalStateCharacteristic = await ganCubeService.getCharacteristic(UUIDs.physicalStateCharacteristic);
+    debugLog("Characteristic:", physicalStateCharacteristic);
 
-    const initialMoveCounter = (await PhysicalState.read(faceletStatus1Characteristic)).moveCounter();
+    const initialMoveCounter = (await PhysicalState.read(physicalStateCharacteristic)).moveCounter();
     debugLog("Initial Move Counter:", initialMoveCounter);
-    var cube = new GanCube(ganCubeService, server, faceletStatus1Characteristic, initialMoveCounter);
+    var cube = new GanCube(ganCubeService, server, physicalStateCharacteristic, initialMoveCounter);
     return cube;
   }
 
@@ -147,7 +138,7 @@ export class GanCube extends BluetoothPuzzle {
 
   // TODO: Can we ever receive async responses out of order?
   async intervalHandler(): Promise<void> {
-    const physicalState = await PhysicalState.read(this.relabeledAngleAndBatteryCharacteristic);
+    const physicalState = await PhysicalState.read(this.physicalStateCharacteristic);
     var numInterveningMoves = physicalState.numMovesSince(this.lastMoveCounter);
     // console.log(numInterveningMoves);
     if (numInterveningMoves > MAX_LATEST_MOVES) {
@@ -171,19 +162,23 @@ export class GanCube extends BluetoothPuzzle {
     return this.kpuzzle.state
   }
 
-  async faceletStatus1Characteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
-    this.cachedFaceletStatus1Characteristic = this.cachedFaceletStatus1Characteristic || this.service.getCharacteristic(UUIDs.faceletStatus1Characteristic);
-    return this.cachedFaceletStatus1Characteristic;
+  async commandCharacteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
+    this.cachedCommandCharacteristic = this.cachedCommandCharacteristic || this.service.getCharacteristic(UUIDs.commandCharacteristic);
+    return this.cachedCommandCharacteristic;
   }
 
   async reset() {
-    const faceletStatus1Characteristic = await this.faceletStatus1Characteristic();
-    await faceletStatus1Characteristic.writeValue(commands.reset);
+    const commandCharacteristic = await this.commandCharacteristic();
+    await commandCharacteristic.writeValue(commands.reset);
   }
 
-  async readFaceletStatus1Characteristic() {
-    const faceletStatus1Characteristic = await this.faceletStatus1Characteristic();
-    return buf2hex((await faceletStatus1Characteristic.readValue()).buffer);
+  async readCommandCharacteristic() {
+    const commandCharacteristic = await this.commandCharacteristic();
+    return buf2hex((await commandCharacteristic.readValue()).buffer);
   }
 
+  private onphysicalStateCharacteristicChanged(event: any): void {
+    var val = event.target.value;
+    debugLog(val);
+  }
 }
