@@ -16,8 +16,7 @@
 <br>
 <span id="alg"></span>
 <br>
-<button onclick="start()">Start</button>
-<button onclick="resume()">Resume</button>
+<button onclick="getState()">Get State</button>
 <br>
 <textarea id="log" rows=20 style="font-family: monospace; width: 80%"></textarea>
 <script>
@@ -55,6 +54,11 @@ function onMove(e) {
 //     console.error(e)
 //   }
 // }
+
+async function getState() {
+  const l = document.querySelector("#log");
+  l.value = await puzzles[0].readFaceletStatus1Characteristic() + " / " + await puzzles[0].readFaceletStatus2Characteristic() + " // \n" + l.value;
+}
 
 const puzzles = [];
 async function connectBluetooth() {

@@ -72,8 +72,8 @@ const UUIDs = {
   ganCubeService: "0000fff0-0000-1000-8000-00805f9b34fb",
   physicalStateCharacteristic: PhysicalState.characteristic,
   // cubeCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb"
-  commandCharacteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
-  command2Characteristic: "0000fff3-0000-1000-8000-00805f9b34fb",
+  faceletStatus1Characteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
+  faceletStatus2Characteristic: "0000fff3-0000-1000-8000-00805f9b34fb",
 };
 
 const commands: {[cmd: string]: BufferSource} = {
@@ -100,8 +100,8 @@ export class GanCube extends BluetoothPuzzle {
   private intervalHandle: number | null = null;
   // TODO: Find out how to read the state from the cube.
   private kpuzzle: KPuzzle = new KPuzzle(Puzzles["333"]);
-  private cachedCommandCharacteristic: Promise<BluetoothRemoteGATTCharacteristic>
-  private cachedCommand2Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
+  private cachedFaceletStatus1Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
+  private cachedFaceletStatus2Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
   private constructor(private service: BluetoothRemoteGATTService, private server: BluetoothRemoteGATTServer, private physicalStateCharacteristic: BluetoothRemoteGATTCharacteristic, private lastMoveCounter: number) {
     super();
     this.startTrackingMoves();
@@ -164,29 +164,29 @@ export class GanCube extends BluetoothPuzzle {
     return this.kpuzzle.state
   }
 
-  async commandCharacteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
-    this.cachedCommandCharacteristic = this.cachedCommandCharacteristic || this.service.getCharacteristic(UUIDs.commandCharacteristic);
-    return this.cachedCommandCharacteristic;
+  async faceletStatus1Characteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
+    this.cachedFaceletStatus1Characteristic = this.cachedFaceletStatus1Characteristic || this.service.getCharacteristic(UUIDs.faceletStatus1Characteristic);
+    return this.cachedFaceletStatus1Characteristic;
   }
 
-  async command2Characteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
-    this.cachedCommand2Characteristic = this.cachedCommand2Characteristic || this.service.getCharacteristic(UUIDs.command2Characteristic);
-    return this.cachedCommand2Characteristic;
+  async faceletStatus2Characteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
+    this.cachedFaceletStatus2Characteristic = this.cachedFaceletStatus2Characteristic || this.service.getCharacteristic(UUIDs.faceletStatus2Characteristic);
+    return this.cachedFaceletStatus2Characteristic;
   }
 
   async reset() {
-    const commandCharacteristic = await this.commandCharacteristic();
-    await commandCharacteristic.writeValue(commands.reset);
+    const faceletStatus1Characteristic = await this.faceletStatus1Characteristic();
+    await faceletStatus1Characteristic.writeValue(commands.reset);
   }
 
-  async readCommandCharacteristic() {
-    const commandCharacteristic = await this.commandCharacteristic();
-    return buf2hex((await commandCharacteristic.readValue()).buffer);
+  async readFaceletStatus1Characteristic() {
+    const faceletStatus1Characteristic = await this.faceletStatus1Characteristic();
+    return buf2hex((await faceletStatus1Characteristic.readValue()).buffer);
   }
 
-  async readCommand2Characteristic() {
-    const command2Characteristic = await this.command2Characteristic();
-    return buf2hex((await command2Characteristic.readValue()).buffer);
+  async readFaceletStatus2Characteristic() {
+    const faceletStatus2Characteristic = await this.faceletStatus2Characteristic();
+    return buf2hex((await faceletStatus2Characteristic.readValue()).buffer);
   }
 
   private onphysicalStateCharacteristicChanged(event: any): void {
