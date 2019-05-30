@@ -13,7 +13,8 @@ const UUIDs = {
 export const giiKERConfig: BluetoothConfig = {
   filters: [
     {namePrefix: "GiC"},
-    {namePrefix: "GiS"}
+    {namePrefix: "GiS"},
+    {namePrefix: "GiY"}
   ],
   optionalServices: [
     // "00001530-1212-efde-1523-785feabcd123",
