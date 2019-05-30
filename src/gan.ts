@@ -73,6 +73,7 @@ const UUIDs = {
   physicalStateCharacteristic: PhysicalState.characteristic,
   // cubeCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb"
   commandCharacteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
+  command2Characteristic: "0000fff3-0000-1000-8000-00805f9b34fb",
 };
 
 const commands: {[cmd: string]: BufferSource} = {
@@ -100,6 +101,7 @@ export class GanCube extends BluetoothPuzzle {
   // TODO: Find out how to read the state from the cube.
   private kpuzzle: KPuzzle = new KPuzzle(Puzzles["333"]);
   private cachedCommandCharacteristic: Promise<BluetoothRemoteGATTCharacteristic>
+  private cachedCommand2Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
   private constructor(private service: BluetoothRemoteGATTService, private server: BluetoothRemoteGATTServer, private physicalStateCharacteristic: BluetoothRemoteGATTCharacteristic, private lastMoveCounter: number) {
     super();
     this.startTrackingMoves();
@@ -167,6 +169,11 @@ export class GanCube extends BluetoothPuzzle {
     return this.cachedCommandCharacteristic;
   }
 
+  async command2Characteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
+    this.cachedCommand2Characteristic = this.cachedCommand2Characteristic || this.service.getCharacteristic(UUIDs.command2Characteristic);
+    return this.cachedCommand2Characteristic;
+  }
+
   async reset() {
     const commandCharacteristic = await this.commandCharacteristic();
     await commandCharacteristic.writeValue(commands.reset);
@@ -175,6 +182,11 @@ export class GanCube extends BluetoothPuzzle {
   async readCommandCharacteristic() {
     const commandCharacteristic = await this.commandCharacteristic();
     return buf2hex((await commandCharacteristic.readValue()).buffer);
+  }
+
+  async readCommand2Characteristic() {
+    const command2Characteristic = await this.command2Characteristic();
+    return buf2hex((await command2Characteristic.readValue()).buffer);
   }
 
   private onphysicalStateCharacteristicChanged(event: any): void {
