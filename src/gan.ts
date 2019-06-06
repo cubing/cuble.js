@@ -71,7 +71,7 @@ class PhysicalState {
 const UUIDs = {
   ganCubeService: "0000fff0-0000-1000-8000-00805f9b34fb",
   physicalStateCharacteristic: PhysicalState.characteristic,
-  // cubeCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb"
+  actualAngleAndBatteryCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb",
   faceletStatus1Characteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
   faceletStatus2Characteristic: "0000fff3-0000-1000-8000-00805f9b34fb",
 };
@@ -102,6 +102,7 @@ export class GanCube extends BluetoothPuzzle {
   private kpuzzle: KPuzzle = new KPuzzle(Puzzles["333"]);
   private cachedFaceletStatus1Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
   private cachedFaceletStatus2Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
+  private cachedActualAngleAndBatteryCharacteristic: Promise<BluetoothRemoteGATTCharacteristic>
   private constructor(private service: BluetoothRemoteGATTService, private server: BluetoothRemoteGATTServer, private physicalStateCharacteristic: BluetoothRemoteGATTCharacteristic, private lastMoveCounter: number) {
     super();
     this.startTrackingMoves();
@@ -160,6 +161,10 @@ export class GanCube extends BluetoothPuzzle {
     this.lastMoveCounter = physicalState.moveCounter();
   }
 
+  async getBattery(): Promise<number> {
+    return new Uint8Array(await this.readActualAngleAndBatteryCharacteristic())[7];
+  }
+
   async getState(): Promise<PuzzleState> {
     return this.kpuzzle.state
   }
@@ -174,19 +179,29 @@ export class GanCube extends BluetoothPuzzle {
     return this.cachedFaceletStatus2Characteristic;
   }
 
+  async actualAngleAndBatteryCharacteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
+    this.cachedActualAngleAndBatteryCharacteristic = this.cachedActualAngleAndBatteryCharacteristic || this.service.getCharacteristic(UUIDs.actualAngleAndBatteryCharacteristic);
+    return this.cachedActualAngleAndBatteryCharacteristic;
+  }
+
   async reset() {
     const faceletStatus1Characteristic = await this.faceletStatus1Characteristic();
     await faceletStatus1Characteristic.writeValue(commands.reset);
   }
 
-  async readFaceletStatus1Characteristic() {
+  async readFaceletStatus1Characteristic(): Promise<ArrayBuffer> {
     const faceletStatus1Characteristic = await this.faceletStatus1Characteristic();
-    return buf2hex((await faceletStatus1Characteristic.readValue()).buffer);
+    return (await faceletStatus1Characteristic.readValue()).buffer;
   }
 
   async readFaceletStatus2Characteristic() {
     const faceletStatus2Characteristic = await this.faceletStatus2Characteristic();
     return buf2hex((await faceletStatus2Characteristic.readValue()).buffer);
+  }
+
+  async readActualAngleAndBatteryCharacteristic(): Promise<ArrayBuffer> {
+    const actualAngleAndBatteryCharacteristic = await this.actualAngleAndBatteryCharacteristic();
+    return (await actualAngleAndBatteryCharacteristic.readValue()).buffer;
   }
 
   private onphysicalStateCharacteristicChanged(event: any): void {
