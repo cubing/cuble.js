@@ -25,7 +25,6 @@ const ganMoveToBlockMove: {[i: number]: BlockMove} = {
 }
 
 class PhysicalState {
-  public static characteristic = "0000fff5-0000-1000-8000-00805f9b34fb";
   private arr: Uint8Array;
   private arrLen = 19;
   private constructor(dataView: DataView, public timeStamp: number) {
@@ -70,7 +69,7 @@ class PhysicalState {
 // TODO: Short IDs
 const UUIDs = {
   ganCubeService: "0000fff0-0000-1000-8000-00805f9b34fb",
-  physicalStateCharacteristic: PhysicalState.characteristic,
+  physicalStateCharacteristic: "0000fff5-0000-1000-8000-00805f9b34fb",
   actualAngleAndBatteryCharacteristic: "0000fff7-0000-1000-8000-00805f9b34fb",
   faceletStatus1Characteristic: "0000fff2-0000-1000-8000-00805f9b34fb",
   faceletStatus2Characteristic: "0000fff3-0000-1000-8000-00805f9b34fb",
@@ -94,11 +93,47 @@ function buf2hex(buffer: ArrayBuffer) { // buffer is an ArrayBuffer
   return Array.prototype.map.call(new Uint8Array(buffer), (x: number) => ('00' + x.toString(16)).slice(-2)).join(' ');
 }
 
+const reidEdgeOrder = "UF UR UB UL DF DR DB DL FR FL BR BL".split(" ");
+const reidCornerOrder = "UFR URB UBL ULF DRF DFL DLB DBR".split(" ");
+
+type PieceInfo = {
+  piece: number,
+  orientation: number
+}
+
+function rotateLeft(s: string, i: number): string {
+  return s.slice(i) + s.slice(0, i)
+}
+
+const pieceMap: {[s: string]: PieceInfo} = {}
+// TODO: Condense the for loops.
+reidEdgeOrder.forEach((edge, idx) => {
+  for (var i = 0; i < 2; i++) {
+    pieceMap[rotateLeft(edge, i)] = {piece: idx, orientation: i};
+  }
+})
+reidCornerOrder.forEach((corner, idx) => {
+  for (var i = 0; i < 3; i++) {
+    pieceMap[rotateLeft(corner, i)] = {piece: idx, orientation: i};
+  }
+})
+
+const gan356iCornerMappings = [
+  [ 0, 21, 15], [ 5, 13, 47], [ 7, 45, 39], [ 2, 37, 23],
+  [29, 10, 16], [31, 18, 32], [26, 34, 40], [24, 42,  8]
+];
+
+const gan356iEdgeMappings = [
+  [ 1, 22], [ 3, 14], [ 6, 46], [ 4, 38],
+  [30, 17], [27,  9], [25, 41], [28, 33],
+  [19, 12], [20, 35], [44, 11], [43, 36]
+];
+const faceOrder = "URFDLB";
+
 export class GanCube extends BluetoothPuzzle {
 
   INTERVAL_MS: number = DEFAULT_INTERVAL_MS;
   private intervalHandle: number | null = null;
-  // TODO: Find out how to read the state from the cube.
   private kpuzzle: KPuzzle = new KPuzzle(Puzzles["333"]);
   private cachedFaceletStatus1Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
   private cachedFaceletStatus2Characteristic: Promise<BluetoothRemoteGATTCharacteristic>
@@ -166,7 +201,44 @@ export class GanCube extends BluetoothPuzzle {
   }
 
   async getState(): Promise<PuzzleState> {
-    return this.kpuzzle.state
+    const arr: Uint8Array = new Uint8Array((await this.readFaceletStatus1Characteristic()));
+    var stickers: number[] = [];
+    for (var i = 0; i < 18; i += 3) {
+      var v = (((arr[i ^ 1] << 8) + arr[(i + 1) ^ 1]) << 8) + arr[(i + 2) ^ 1];
+      for (var j = 0; j < 8; j++) {
+        stickers.push(v & 7);
+        v >>= 3
+      }
+    }
+
+    const state: PuzzleState = {
+      CORNER: {
+        permutation: [],
+        orientation: []
+      },
+      EDGE: {
+        permutation: [],
+        orientation: []
+      },
+      CENTER: {
+        permutation: [0, 1, 2, 3, 4, 5],
+        orientation: [0, 0, 0, 0, 0, 0]
+      }
+    }
+
+    for (const cornerMapping of gan356iCornerMappings) {
+      const pieceInfo: PieceInfo = pieceMap[cornerMapping.map(i => faceOrder[stickers[i]]).join("")];
+      state.CORNER.permutation.push(pieceInfo.piece);
+      state.CORNER.orientation.push(pieceInfo.orientation);
+    }
+
+    for (const edgeMapping of gan356iEdgeMappings) {
+      const pieceInfo: PieceInfo = pieceMap[edgeMapping.map(i => faceOrder[stickers[i]]).join("")];
+      state.EDGE.permutation.push(pieceInfo.piece);
+      state.EDGE.orientation.push(pieceInfo.orientation);
+    }
+
+    return state;
   }
 
   async faceletStatus1Characteristic(): Promise<BluetoothRemoteGATTCharacteristic> {
