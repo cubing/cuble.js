@@ -26,10 +26,9 @@ export abstract class BluetoothPuzzle {
 
   public abstract name(): string | undefined;
 
-  // There may be puzzles in the future that always return null.
-  // TODO: move this to a separate interface?
-  public async getState(): Promise<PuzzleState | null> {
-    return null;
+  // TODO: require subclasses to implement this?
+  public async getState(): Promise<PuzzleState> {
+    throw "cannot get state";
   }
 
   public addMoveListener(listener: (e: MoveEvent) => void): void {

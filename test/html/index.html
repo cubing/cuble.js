@@ -16,8 +16,7 @@
 <br>
 <span id="alg"></span>
 <br>
-<button onclick="start()">Start</button>
-<button onclick="resume()">Resume</button>
+<button onclick="getState()">Get State</button>
 <br>
 <textarea id="log" rows=20 style="font-family: monospace; width: 80%"></textarea>
 <script>
@@ -30,9 +29,25 @@ enableDebugLogging(true);
 const def = Puzzles["333"];
 const svg = new SVG(def);
 
-function onMove(e) {
+async function onMove(e) {
   document.querySelector("#alg").textContent += " " + algToString(new Sequence([e.latestMove]));
-  svg.draw(def, e.state);
+  console.log("e", e.state);
+  // svg.draw(def, e.state);
+
+  // const l = document.querySelector("#log");
+  // var newStuff = "{\n"
+  // newStuff += "  \"state\": \"" + await puzzles[0].readFaceletStatus1Characteristic() + "\",\n";
+  // scramble = alg.algToString(alg.coalesceBaseMoves(alg.parse(document.querySelector("#alg").textContent)))
+  // newStuff += "  \"scramble\": \"" + scramble + "\",\n";
+  // newStuff += "  \"reidState\": " + JSON.stringify((await puzzles[0].getState())) + "\n";
+  // newStuff += "},"
+  // l.textContent = newStuff + l.textContent;
+
+  // getState()
+  const state = await puzzles[0].getState();
+  console.log("a", state);
+  svg.draw(def, state);
+  
   // console.log(e);
 }
 
@@ -55,6 +70,36 @@ function onMove(e) {
 //     console.error(e)
 //   }
 // }
+
+
+function f(a, b) {
+out = "";
+for (var i = 0; i < a.length; i++) {
+out = out + ( (a[i] == b[i]) ? " " : "•");
+}
+return out;}
+
+function t(x) {
+  return x.split(" ").map(v => parseInt(v, 16).toString(6).padStart(4, "0")).join(" ")
+}
+
+function binary(x) {
+  return x.split(" ").map(v => parseInt(v, 16).toString(2).padStart(8, "0")).join(" ")
+}
+
+function g(x) {
+  n = t(x)
+  c = " // "
+  m = f(t("00 00 24 00 49 92 24 49 6d 92 db b6 49 92 b6 24 6d db"), n)
+  return n + c + "\n" + m;
+}
+
+async function getState() {
+  const l = document.querySelector("#log");
+  const c = await puzzles[0].readFaceletStatus1Characteristic();
+  // l.value = c + " // \n" + f("00 00 24 00 49 92 24 49 6d 92 db b6 49 92 b6 24 6d db", c) + "\n" + l.value;
+  l.value = JSON.stringify(await puzzles[0].getState()) + "\n" + l.value;
+}
 
 const puzzles = [];
 async function connectBluetooth() {
