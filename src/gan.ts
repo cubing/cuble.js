@@ -130,6 +130,14 @@ const gan356iEdgeMappings = [
 ];
 const faceOrder = "URFDLB";
 
+class CharacteristicGetter {
+  characteristics: {[s: string]: Promise<BluetoothRemoteGATTCharacteristic> | null}
+  constructor(private service: BluetoothRemoteGATTService) {
+  }
+
+  // get()
+}
+
 export class GanCube extends BluetoothPuzzle {
 
   INTERVAL_MS: number = DEFAULT_INTERVAL_MS;

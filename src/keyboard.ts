@@ -1,6 +1,6 @@
 import {keyToMove} from "alg"
 import {KPuzzle, Puzzles} from "kpuzzle"
-import {BluetoothPuzzle} from "./bluetooth-puzzle"
+import {BluetoothPuzzle, PuzzleState} from "./bluetooth-puzzle"
 
 const def = Puzzles["333"];
 
@@ -15,6 +15,10 @@ export class KeyboardPuzzle extends BluetoothPuzzle {
 
   public name(): string | undefined {
     return "Keyboard Input";
+  }
+
+  async getState(): Promise<PuzzleState> {
+    return this.puzzle.state;
   }
 
   private onKeyDown(e: KeyboardEvent) {
